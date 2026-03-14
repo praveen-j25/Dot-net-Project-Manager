@@ -1,0 +1,311 @@
+@model TaskManagerMVC.ViewModels.AdminDashboardVM
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="container-fluid px-4 py-4">
+    <!-- Welcome Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h2 class="fw-bold mb-1" style="color:#0f172a;">Admin Dashboard</h2>
+                    <p class="text-muted mb-0">
+                        <i class="bi bi-calendar3 me-1"></i>@DateTime.Now.ToString("dddd, MMMM dd, yyyy")
+                        <span class="mx-2">|</span>
+                        <i class="bi bi-activity me-1"></i>Real-time overview
+                    </p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="@Url.Action("AssignTask", "Admin")" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-1"></i>Assign Task
+                    </a>
+                    <a href="@Url.Action("CreateUser", "Admin")" class="btn btn-outline-primary">
+                        <i class="bi bi-person-plus me-1"></i>Add Employee
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="stat-card primary" style="border-radius:16px; padding:1.25rem;">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="mb-1 small opacity-75">Total Employees</p>
+                        <h2 class="mb-0 fw-bold">@Model.TotalEmployees</h2>
+                    </div>
+                    <div class="bg-white bg-opacity-25 rounded-3 p-2">
+                        <i class="bi bi-people-fill fs-5"></i>
+                    </div>
+                </div>
+                <div class="mt-2"><small class="opacity-75">Active workforce</small></div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card success" style="border-radius:16px; padding:1.25rem;">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="mb-1 small opacity-75">Active Projects</p>
+                        <h2 class="mb-0 fw-bold">@Model.ActiveProjects</h2>
+                    </div>
+                    <div class="bg-white bg-opacity-25 rounded-3 p-2">
+                        <i class="bi bi-folder2-open fs-5"></i>
+                    </div>
+                </div>
+                <div class="mt-2"><small class="opacity-75">In progress</small></div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card info" style="border-radius:16px; padding:1.25rem;">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="mb-1 small opacity-75">Total Tasks</p>
+                        <h2 class="mb-0 fw-bold">@Model.TotalTasks</h2>
+                    </div>
+                    <div class="bg-white bg-opacity-25 rounded-3 p-2">
+                        <i class="bi bi-list-task fs-5"></i>
+                    </div>
+                </div>
+                <div class="mt-2"><small class="opacity-75">Across all projects</small></div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card danger" style="border-radius:16px; padding:1.25rem;">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="mb-1 small opacity-75">Overdue</p>
+                        <h2 class="mb-0 fw-bold">@Model.OverdueTasks</h2>
+                    </div>
+                    <div class="bg-white bg-opacity-25 rounded-3 p-2">
+                        <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                    </div>
+                </div>
+                <div class="mt-2"><small class="opacity-75">Needs attention</small></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Status Pipeline -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm" style="border-radius:14px; border-left:4px solid #64748b !important;">
+                <div class="card-body d-flex align-items-center gap-3 py-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:42px;height:42px;background:#f1f5f9;">
+                        <i class="bi bi-clock" style="color:#64748b;"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0 fw-bold">@Model.PendingTasks</h4>
+                        <small class="text-muted">Pending</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm" style="border-radius:14px; border-left:4px solid #2563eb !important;">
+                <div class="card-body d-flex align-items-center gap-3 py-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:42px;height:42px;background:#eff6ff;">
+                        <i class="bi bi-arrow-repeat" style="color:#2563eb;"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0 fw-bold">@Model.InProgressTasks</h4>
+                        <small class="text-muted">In Progress</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm" style="border-radius:14px; border-left:4px solid #f59e0b !important;">
+                <div class="card-body d-flex align-items-center gap-3 py-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:42px;height:42px;background:#fffbeb;">
+                        <i class="bi bi-eye" style="color:#f59e0b;"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0 fw-bold">@Model.InReviewTasks</h4>
+                        <small class="text-muted">In Review</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm" style="border-radius:14px; border-left:4px solid #059669 !important;">
+                <div class="card-body d-flex align-items-center gap-3 py-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:42px;height:42px;background:#ecfdf5;">
+                        <i class="bi bi-check-circle" style="color:#059669;"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0 fw-bold">@Model.CompletedTasks</h4>
+                        <small class="text-muted">Completed</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Top Performers -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm" style="border-radius:14px;">
+                <div class="card-header bg-white border-0 py-3 px-4" style="border-radius:14px 14px 0 0;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold"><i class="bi bi-trophy-fill text-warning me-2"></i>Top Performers</h5>
+                        <a href="@Url.Action("TeamPerformance", "Admin")" class="btn btn-sm btn-outline-primary rounded-pill px-3">View All</a>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    @if(Model.TopPerformers?.Any() == true)
+                    {
+                        <div class="list-group list-group-flush">
+                            @{ int rank = 1; }
+                            @foreach(var emp in Model.TopPerformers.Take(5))
+                            {
+                                var medalColor = rank switch { 1 => "#f59e0b", 2 => "#94a3b8", 3 => "#c2884d", _ => "#e2e8f0" };
+                                <div class="list-group-item border-0 py-3 px-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3 d-flex align-items-center justify-content-center rounded-circle fw-bold" 
+                                             style="width:36px;height:36px;background:@(medalColor)20;color:@medalColor;font-size:0.85rem;">
+                                            @if(rank <= 3)
+                                            {
+                                                <i class="bi bi-trophy-fill"></i>
+                                            }
+                                            else
+                                            {
+                                                @rank
+                                            }
+                                        </div>
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                             style="width:40px;height:40px;background:linear-gradient(135deg,#7c3aed,#2563eb);color:#fff;font-size:0.8rem;font-weight:600;">
+                                            @emp.Initials
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-0 fw-semibold">@emp.FullName</h6>
+                                            <small class="text-muted">@emp.Department</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge rounded-pill" style="background:#ecfdf5;color:#059669;font-weight:600;">@emp.CompletedTasks done</span>
+                                            <div class="d-flex align-items-center justify-content-end mt-1">
+                                                <div class="progress me-2" style="width:50px;height:4px;">
+                                                    <div class="progress-bar" style="width:@emp.CompletionRate%;background:linear-gradient(90deg,#7c3aed,#2563eb);"></div>
+                                                </div>
+                                                <small class="text-muted">@emp.CompletionRate%</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                rank++;
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <div class="mb-3" style="width:60px;height:60px;background:#f1f5f9;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;">
+                                <i class="bi bi-people fs-4 text-muted"></i>
+                            </div>
+                            <p class="text-muted mb-0">No performance data yet</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Projects -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm" style="border-radius:14px;">
+                <div class="card-header bg-white border-0 py-3 px-4" style="border-radius:14px 14px 0 0;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold"><i class="bi bi-folder2-open text-primary me-2"></i>Active Projects</h5>
+                        <a href="@Url.Action("Projects", "Admin")" class="btn btn-sm btn-outline-primary rounded-pill px-3">View All</a>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    @if(Model.ActiveProjectsList?.Any() == true)
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach(var proj in Model.ActiveProjectsList.Take(5))
+                            {
+                                var progColor = proj.Progress >= 75 ? "#059669" : proj.Progress >= 50 ? "#2563eb" : proj.Progress >= 25 ? "#f59e0b" : "#94a3b8";
+                                <div class="list-group-item border-0 py-3 px-4">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <h6 class="mb-0 fw-semibold">@proj.Name</h6>
+                                            <small class="text-muted">@proj.Code &middot; @proj.TotalTasks tasks</small>
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress me-2" style="width:80px;height:6px; border-radius:3px;">
+                                                <div class="progress-bar" style="width:@proj.Progress%;background:@progColor;border-radius:3px;"></div>
+                                            </div>
+                                            <span class="badge rounded-pill" style="background:@(progColor)18;color:@progColor;font-weight:600;min-width:42px;">@proj.Progress%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <div class="mb-3" style="width:60px;height:60px;background:#f1f5f9;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;">
+                                <i class="bi bi-folder fs-4 text-muted"></i>
+                            </div>
+                            <p class="text-muted mb-1">No active projects</p>
+                            <a href="@Url.Action("CreateProject", "Admin")" class="btn btn-sm btn-primary rounded-pill px-3 mt-2">
+                                <i class="bi bi-plus me-1"></i>Create Project
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row g-3 mt-3">
+        <div class="col-6 col-md-3">
+            <a href="@Url.Action("AssignTask", "Admin")" class="card border-0 shadow-sm text-decoration-none h-100" style="border-radius:14px; transition:transform 0.15s;">
+                <div class="card-body text-center py-4">
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width:52px;height:52px;background:linear-gradient(135deg,#7c3aed,#a78bfa);">
+                        <i class="bi bi-plus-circle-fill text-white fs-5"></i>
+                    </div>
+                    <p class="mb-0 fw-semibold text-dark">Assign Task</p>
+                    <small class="text-muted">Create & assign</small>
+                </div>
+            </a>
+        </div>
+        <div class="col-6 col-md-3">
+            <a href="@Url.Action("CreateUser", "Admin")" class="card border-0 shadow-sm text-decoration-none h-100" style="border-radius:14px; transition:transform 0.15s;">
+                <div class="card-body text-center py-4">
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width:52px;height:52px;background:linear-gradient(135deg,#059669,#34d399);">
+                        <i class="bi bi-person-plus-fill text-white fs-5"></i>
+                    </div>
+                    <p class="mb-0 fw-semibold text-dark">Add Employee</p>
+                    <small class="text-muted">New team member</small>
+                </div>
+            </a>
+        </div>
+        <div class="col-6 col-md-3">
+            <a href="@Url.Action("CreateProject", "Admin")" class="card border-0 shadow-sm text-decoration-none h-100" style="border-radius:14px; transition:transform 0.15s;">
+                <div class="card-body text-center py-4">
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width:52px;height:52px;background:linear-gradient(135deg,#2563eb,#60a5fa);">
+                        <i class="bi bi-folder-plus text-white fs-5"></i>
+                    </div>
+                    <p class="mb-0 fw-semibold text-dark">New Project</p>
+                    <small class="text-muted">Start project</small>
+                </div>
+            </a>
+        </div>
+        <div class="col-6 col-md-3">
+            <a href="@Url.Action("Users", "Admin")" class="card border-0 shadow-sm text-decoration-none h-100" style="border-radius:14px; transition:transform 0.15s;">
+                <div class="card-body text-center py-4">
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width:52px;height:52px;background:linear-gradient(135deg,#f59e0b,#fbbf24);">
+                        <i class="bi bi-people-fill text-white fs-5"></i>
+                    </div>
+                    <p class="mb-0 fw-semibold text-dark">Manage Users</p>
+                    <small class="text-muted">Team overview</small>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>

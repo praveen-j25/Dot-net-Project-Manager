@@ -1,0 +1,303 @@
+@model TaskManagerMVC.ViewModels.UserFormVM
+@{
+    ViewData["Title"] = Model.Id > 0 ? "Edit Employee" : "Add Employee";
+}
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-1">@ViewData["Title"]</h1>
+                    <p class="text-muted mb-0">@(Model.Id > 0 ? "Update employee information" : "Add a new team member")</p>
+                </div>
+                <a href="@Url.Action("Users", "Admin")" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Users
+                </a>
+            </div>
+
+            <form asp-action="@(Model.Id > 0 ? "EditUser" : "CreateUser")" method="post">
+                <input type="hidden" asp-for="Id" />
+                
+                <!-- Personal Info -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0"><i class="bi bi-person me-2 text-primary"></i>Personal Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="FirstName" class="form-label">First Name <span class="text-danger">*</span></label>
+                                <input asp-for="FirstName" class="form-control" placeholder="Enter first name" />
+                                <span asp-validation-for="FirstName" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="LastName" class="form-label">Last Name <span class="text-danger">*</span></label>
+                                <input asp-for="LastName" class="form-control" placeholder="Enter last name" />
+                                <span asp-validation-for="LastName" class="text-danger small"></span>
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-6">
+                                <label asp-for="Email" class="form-label">Email <span class="text-danger">*</span></label>
+                                <input asp-for="Email" type="email" class="form-control" placeholder="Enter email address" autocomplete="off" />
+                                <span asp-validation-for="Email" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Phone" class="form-label">Phone</label>
+                                <input asp-for="Phone" class="form-control" placeholder="Enter phone number" autocomplete="off" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Info -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0"><i class="bi bi-key me-2 text-warning"></i>Account Settings</h5>
+                    </div>
+                    <div class="card-body">
+                        @if(Model.Id == 0)
+                        {
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label asp-for="Password" class="form-label">Password <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <input asp-for="Password" type="password" class="form-control" placeholder="Enter password" autocomplete="new-password" />
+                                        <button class="btn btn-outline-secondary toggle-password" type="button">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
+                                    <span asp-validation-for="Password" class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="ConfirmPassword" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Confirm password" autocomplete="new-password" />
+                                        <button class="btn btn-outline-secondary toggle-password" type="button">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
+                                    <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info mb-0">
+                                <i class="bi bi-info-circle me-2"></i>
+                                Leave password fields empty to keep the current password.
+                            </div>
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-6">
+                                    <label asp-for="Password" class="form-label">New Password</label>
+                                    <div class="input-group">
+                                        <input asp-for="Password" type="password" class="form-control" placeholder="Enter new password" />
+                                        <button class="btn btn-outline-secondary toggle-password" type="button">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="ConfirmPassword" class="form-label">Confirm New Password</label>
+                                    <div class="input-group">
+                                        <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Confirm new password" />
+                                        <button class="btn btn-outline-secondary toggle-password" type="button">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-6">
+                                <div class="form-check form-switch mt-3">
+                                    <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                                    <label asp-for="IsActive" class="form-check-label">Active Account</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Organization Info -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0"><i class="bi bi-building me-2 text-success"></i>Organization</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="RoleId" class="form-label">Role <span class="text-danger">*</span></label>
+                                <select asp-for="RoleId" asp-items="Model.Roles" class="form-select">
+                                    <option value="">-- Select Role --</option>
+                                </select>
+                                <span asp-validation-for="RoleId" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="DepartmentId" class="form-label">Department</label>
+                                <select asp-for="DepartmentId" asp-items="Model.Departments" class="form-select">
+                                    <option value="">-- Select Department --</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-6">
+                                <label asp-for="TeamId" class="form-label">Team</label>
+                                <select asp-for="TeamId" asp-items="Model.Teams" class="form-select">
+                                    <option value="">-- Select Team --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="ReportsTo" class="form-label">Reports To</label>
+                                <select asp-for="ReportsTo" asp-items="Model.Managers" class="form-select">
+                                    <option value="">-- Select Manager --</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-6">
+                                <label asp-for="JobTitle" class="form-label">Job Title</label>
+                                <input asp-for="JobTitle" class="form-control" placeholder="e.g., Senior Developer" />
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="EmployeeId" class="form-label">Employee ID</label>
+                                <div class="input-group">
+                                    <input asp-for="EmployeeId" class="form-control" placeholder="Will be auto-generated" readonly id="employeeIdInput" />
+                                    <button type="button" class="btn btn-outline-secondary" onclick="generateEmployeeId()" title="Generate ID">
+                                        <i class="bi bi-arrow-clockwise"></i> Generate
+                                    </button>
+                                </div>
+                                <small class="text-muted">Click Generate to preview the Employee ID</small>
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-6">
+                                <label asp-for="HireDate" class="form-label">Hire Date</label>
+                                <input asp-for="HireDate" type="date" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit -->
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="@Url.Action("Users", "Admin")" class="btn btn-outline-secondary px-4">Cancel</a>
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-check-circle me-2"></i>@(Model.Id > 0 ? "Update Employee" : "Add Employee")
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+        async function generateEmployeeId() {
+            try {
+                const response = await fetch('/Admin/GenerateEmployeeId');
+                const data = await response.json();
+                
+                if (data.employeeId) {
+                    document.getElementById('employeeIdInput').value = data.employeeId;
+                    document.getElementById('employeeIdInput').readOnly = false;
+                }
+            } catch (error) {
+                console.error('Error generating Employee ID:', error);
+                alert('Failed to generate Employee ID');
+            }
+        }
+        
+        // Auto-generate on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            generateEmployeeId();
+            
+            // Dynamic Team Filtering
+            const departmentParams = document.getElementById('DepartmentId');
+            const teamSelect = document.getElementById('TeamId');
+            
+            if (departmentParams && teamSelect) {
+                // Store original team ID if editing (for initial load)
+                const originalTeamId = teamSelect.value;
+                
+                // Function to update teams
+                async function updateTeams(departmentId, isInitialLoad = false) {
+                    // Clear current options except "Select Team"
+                    teamSelect.innerHTML = '<option value="">-- Select Team --</option>';
+                    
+                    if (!departmentId) {
+                        return;
+                    }
+                    
+                    try {
+                        const response = await fetch(`/Admin/GetTeamsByDepartment?departmentId=${departmentId}`);
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        
+                        const teams = await response.json();
+                        
+                        if (teams.length === 0) {
+                            const option = document.createElement('option');
+                            option.text = "No Teams Available";
+                            option.disabled = true;
+                            teamSelect.add(option);
+                        } else {
+                            teams.forEach(team => {
+                                const option = document.createElement('option');
+                                option.value = team.id;
+                                option.text = team.name;
+                                teamSelect.add(option);
+                            });
+                            
+                            // Restore selection only on initial load if applicable
+                            if (isInitialLoad && originalTeamId) {
+                                // Check if the original team is in the new list (it should be if dept hasn't changed)
+                                const options = Array.from(teamSelect.options);
+                                const exists = options.some(opt => opt.value == originalTeamId);
+                                if (exists) {
+                                    teamSelect.value = originalTeamId;
+                                }
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error fetching teams:', error);
+                        // Enhance error visibility or fail gracefully
+                    }
+                }
+                
+                // Event listener for manual changes
+                departmentParams.addEventListener('change', function() {
+                    updateTeams(this.value, false); // Not initial load
+                });
+                
+                // Trigger on load if department is selected (e.g. Edit mode)
+                if (departmentParams.value) {
+                    updateTeams(departmentParams.value, true); // Is initial load
+                }
+            }
+        });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const toggleButtons = document.querySelectorAll('.toggle-password');
+            toggleButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const input = this.previousElementSibling;
+                    const icon = this.querySelector('i');
+                    
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        icon.classList.remove('bi-eye');
+                        icon.classList.add('bi-eye-slash');
+                    } else {
+                        input.type = 'password';
+                        icon.classList.remove('bi-eye-slash');
+                        icon.classList.add('bi-eye');
+                    }
+                });
+            });
+        });
+    </script>
+}

@@ -1,0 +1,180 @@
+@model TaskDetailsVM
+@{
+    ViewData["Title"] = Model.Title;
+    var pColor = Model.PriorityName?.ToLower() switch
+    {
+        "critical" => "#ef4444", "high" => "#f59e0b", "medium" => "#3b82f6", _ => "#94a3b8"
+    };
+    var sColor = Model.StatusName?.ToLower() switch
+    {
+        "completed" => "#059669", "in progress" => "#2563eb", _ => "#64748b"
+    };
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex align-items-center mb-4">
+                <a asp-action="Index" class="btn btn-outline-secondary me-3 rounded-circle" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+                <div class="flex-grow-1">
+                    <h3 class="fw-bold mb-1" style="color:#0f172a;">@Model.Title</h3>
+                    <div class="d-flex gap-2">
+                        <span class="badge rounded-pill" style="background:@(pColor)18;color:@pColor;font-weight:600;">@Model.PriorityName</span>
+                        <span class="badge rounded-pill" style="background:@(sColor)18;color:@sColor;font-weight:600;">@Model.StatusName</span>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                        <i class="bi bi-pencil me-1"></i>Edit
+                    </a>
+                    <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Delete this task?')">
+                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
+                            <i class="bi bi-trash me-1"></i>Delete
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Task Info -->
+            <div class="card border-0 shadow-sm mb-4" style="border-radius:14px;">
+                <div class="card-body p-4">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:36px;height:36px;background:#f1f5f9;">
+                                    <i class="bi bi-folder text-muted"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Category</small>
+                                    <span class="fw-medium">@(Model.CategoryName ?? "None")</span>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:36px;height:36px;background:#f1f5f9;">
+                                    <i class="bi bi-calendar text-muted"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Due Date</small>
+                                    @if (Model.DueDate.HasValue)
+                                    {
+                                        var isOverdue = Model.DueDate < DateTime.Today && Model.StatusName != "Completed";
+                                        <span class="fw-medium @(isOverdue ? "text-danger" : "")">
+                                            @Model.DueDate.Value.ToString("MMMM dd, yyyy")
+                                            @if(isOverdue) { <i class="bi bi-exclamation-circle ms-1"></i> }
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Not set</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:36px;height:36px;background:#f1f5f9;">
+                                    <i class="bi bi-clock text-muted"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Created</small>
+                                    <span class="fw-medium">@Model.CreatedAt.ToString("MMM dd, yyyy h:mm tt")</span>
+                                </div>
+                            </div>
+                            @if (Model.UpdatedAt.HasValue)
+                            {
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:36px;height:36px;background:#f1f5f9;">
+                                        <i class="bi bi-pencil text-muted"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted d-block">Last Updated</small>
+                                        <span class="fw-medium">@Model.UpdatedAt.Value.ToString("MMM dd, yyyy h:mm tt")</span>
+                                    </div>
+                                </div>
+                            }
+                            @if ((User.IsInRole("Admin")) && Model.HourlyRate > 0)
+                            {
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:36px;height:36px;background:#f1f5f9;">
+                                        <i class="bi bi-currency-rupee text-muted"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted d-block">Hourly Rate</small>
+                                        <span class="fw-medium">₹@Model.HourlyRate.ToString("N2")</span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold mb-2"><i class="bi bi-text-paragraph me-2 text-primary"></i>Description</h6>
+                    <div class="p-3 rounded-3" style="background:#f8fafc;">
+                        @if (!string.IsNullOrEmpty(Model.Description))
+                        {
+                            <p class="mb-0" style="white-space: pre-wrap;">@Model.Description</p>
+                        }
+                        else
+                        {
+                            <p class="text-muted mb-0">No description provided</p>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attachments -->
+            <div class="card border-0 shadow-sm" style="border-radius:14px;">
+                <div class="card-header bg-white border-0 py-3 px-4" style="border-radius:14px 14px 0 0;">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-paperclip text-primary me-2"></i>Attachments
+                        @if(Model.FileAttachments?.Any() == true)
+                        {
+                            <span class="badge rounded-pill bg-primary ms-1">@Model.FileAttachments.Count</span>
+                        }
+                    </h5>
+                </div>
+                <div class="card-body pt-0 px-4 pb-4">
+                    @if(Model.FileAttachments?.Any() == true)
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach(var file in Model.FileAttachments)
+                            {
+                                <div class="list-group-item border-0 d-flex align-items-center gap-3 py-3 px-0" style="border-bottom:1px solid #f1f5f9 !important;">
+                                    <div class="rounded-3 d-flex align-items-center justify-content-center" style="width:42px;height:42px;background:#f8fafc;">
+                                        <i class="bi @file.FileIcon fs-5"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <a href="/File/Attachment/@file.Id" target="_blank" class="fw-medium text-decoration-none d-block">@file.OriginalName</a>
+                                        <small class="text-muted">@file.FileSizeFormatted &middot; @file.CreatedAt.ToString("MMM dd, h:mm tt") @(file.UploadedByName != null ? $"by {file.UploadedByName}" : "")</small>
+                                    </div>
+                                    <div class="d-flex gap-1">
+                                        <a href="/File/Attachment/@file.Id" download class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                            <i class="bi bi-download"></i>
+                                        </a>
+                                        <form asp-action="DeleteAttachment" method="post" class="d-inline" onsubmit="return confirm('Delete this file?')">
+                                            <input type="hidden" name="id" value="@file.Id" />
+                                            <input type="hidden" name="taskId" value="@Model.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <div class="mb-2" style="width:48px;height:48px;background:#f1f5f9;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;">
+                                <i class="bi bi-paperclip text-muted fs-5"></i>
+                            </div>
+                            <p class="text-muted mb-0 small">No attachments yet</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

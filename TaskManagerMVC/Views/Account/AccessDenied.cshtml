@@ -1,0 +1,91 @@
+@{
+    ViewData["Title"] = "Access Denied";
+    var returnUrl = ViewData["ReturnUrl"] as string;
+    var message = ViewData["Message"] as string ?? "You don't have permission to access this resource.";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center p-5">
+                    <div class="mb-4">
+                        <i class="bi bi-shield-exclamation text-danger" style="font-size: 4rem;"></i>
+                    </div>
+                    
+                    <h2 class="card-title text-danger mb-3">Access Denied</h2>
+                    
+                    <p class="text-muted mb-4">@message</p>
+                    
+                    @if (!string.IsNullOrEmpty(returnUrl))
+                    {
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            You attempted to access: <code>@returnUrl</code>
+                        </div>
+                    }
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+                            
+                            @if (role == "Admin")
+                            {
+                                <a asp-controller="Admin" asp-action="Index" class="btn btn-primary">
+                                    <i class="bi bi-house-door me-2"></i>Go to Dashboard
+                                </a>
+                            }
+                            else if (role == "Manager")
+                            {
+                                <a asp-controller="Manager" asp-action="Index" class="btn btn-primary">
+                                    <i class="bi bi-house-door me-2"></i>Go to Dashboard
+                                </a>
+                            }
+                            else
+                            {
+                                <a asp-controller="Employee" asp-action="Index" class="btn btn-primary">
+                                    <i class="bi bi-house-door me-2"></i>Go to Dashboard
+                                </a>
+                            }
+                            
+                            <button onclick="history.back()" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Go Back
+                            </button>
+                        }
+                        else
+                        {
+                            <a asp-controller="Account" asp-action="Login" class="btn btn-primary">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <p class="text-muted small">
+                    If you believe this is an error, please contact your system administrator.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+    }
+    
+    .card {
+        border-radius: 15px;
+    }
+    
+    code {
+        background-color: #f8f9fa;
+        padding: 2px 6px;
+        border-radius: 4px;
+        color: #e83e8c;
+    }
+</style>

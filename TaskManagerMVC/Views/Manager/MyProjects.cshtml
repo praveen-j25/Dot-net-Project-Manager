@@ -1,0 +1,191 @@
+@model TaskManagerMVC.ViewModels.ManagerProjectsVM
+@{
+    ViewData["Title"] = "My Projects";
+}
+
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">My Projects</h1>
+            <p class="text-muted mb-0">Projects you are managing</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="@Url.Action("CreateProject")" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-2"></i>Create Project
+            </a>
+            <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <ul class="nav nav-pills mb-4">
+        <li class="nav-item">
+            <a class="nav-link @(string.IsNullOrEmpty(Model.StatusFilter) ? "active" : "")" 
+               href="@Url.Action("MyProjects")">
+                All Projects
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(Model.StatusFilter == "active" ? "active" : "")" 
+               href="@Url.Action("MyProjects", new { status = "active" })">
+                Active
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(Model.StatusFilter == "planning" ? "active" : "")" 
+               href="@Url.Action("MyProjects", new { status = "planning" })">
+                Planning
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(Model.StatusFilter == "completed" ? "active" : "")" 
+               href="@Url.Action("MyProjects", new { status = "completed" })">
+                Completed
+            </a>
+        </li>
+    </ul>
+
+    @if (Model.Projects.Any())
+    {
+        <!-- Projects Grid -->
+        <div class="row g-4">
+            @foreach (var project in Model.Projects)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <!-- Project Header -->
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="flex-grow-1">
+                                    <h5 class="mb-1">
+                                        <a href="@Url.Action("ProjectDetails", new { id = project.Id })" 
+                                           class="text-decoration-none text-dark">
+                                            @project.Name
+                                        </a>
+                                    </h5>
+                                    @if (!string.IsNullOrEmpty(project.Code))
+                                    {
+                                        <small class="text-muted">@project.Code</small>
+                                    }
+                                </div>
+                                <span class="badge bg-@(project.Status == "active" ? "success" : project.Status == "planning" ? "info" : project.Status == "completed" ? "primary" : "warning")">
+                                    @project.Status.Replace("_", " ")
+                                </span>
+                            </div>
+
+                            <!-- Description -->
+                            @if (!string.IsNullOrEmpty(project.Description))
+                            {
+                                <p class="text-muted small mb-3">
+                                    @(project.Description.Length > 100 ? project.Description.Substring(0, 100) + "..." : project.Description)
+                                </p>
+                            }
+
+                            <!-- Project Info -->
+                            <div class="mb-3">
+                                @if (project.StartDate.HasValue && project.EndDate.HasValue)
+                                {
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="bi bi-calendar text-muted me-2"></i>
+                                        <small>@project.StartDate.Value.ToString("MMM dd") - @project.EndDate.Value.ToString("MMM dd, yyyy")</small>
+                                    </div>
+                                }
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-currency-rupee text-muted me-2"></i>
+                                    <small>Budget: ₹@project.Budget.ToString("N0")</small>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-flag text-muted me-2"></i>
+                                    <small>Priority: 
+                                        <span class="badge bg-@(project.Priority == "high" ? "danger" : project.Priority == "medium" ? "warning" : "info") badge-sm">
+                                            @project.Priority
+                                        </span>
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- Progress -->
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <small class="text-muted">Progress</small>
+                                    <small class="fw-bold">@project.CompletedTasks / @project.TotalTasks tasks</small>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-@(project.Progress >= 80 ? "success" : project.Progress >= 50 ? "info" : "warning")" 
+                                         role="progressbar" 
+                                         style="width: @project.Progress%"
+                                         aria-valuenow="@project.Progress" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100">
+                                    </div>
+                                </div>
+                                <small class="text-muted">@project.Progress.ToString("F1")% Complete</small>
+                            </div>
+
+                            <!-- Days Remaining -->
+                            @if (project.EndDate.HasValue && project.Status == "active")
+                            {
+                                <div class="alert alert-@(project.DaysRemaining < 0 ? "danger" : project.DaysRemaining <= 7 ? "warning" : "info") py-2 mb-3">
+                                    <i class="bi bi-clock me-1"></i>
+                                    <small>
+                                        @if (project.DaysRemaining < 0)
+                                        {
+                                            <span>Overdue by @Math.Abs(project.DaysRemaining) days</span>
+                                        }
+                                        else if (project.DaysRemaining == 0)
+                                        {
+                                            <span>Due today!</span>
+                                        }
+                                        else
+                                        {
+                                            <span>@project.DaysRemaining days remaining</span>
+                                        }
+                                    </small>
+                                </div>
+                            }
+
+                            <!-- Actions -->
+                            <div class="d-flex gap-2">
+                                <a href="@Url.Action("ProjectDetails", new { id = project.Id })" 
+                                   class="btn btn-sm btn-primary">
+                                    <i class="bi bi-eye me-1"></i>View
+                                </a>
+                                <a href="@Url.Action("EditProject", new { id = project.Id })" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-pencil me-1"></i>Edit
+                                </a>
+                                <a href="@Url.Action("TaskManagement", new { projectId = project.Id })" 
+                                   class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-list-task me-1"></i>Tasks
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <!-- Empty State -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-folder fs-1 text-muted d-block mb-3"></i>
+                <h5 class="text-muted">No Projects Found</h5>
+                <p class="text-muted">
+                    @if (!string.IsNullOrEmpty(Model.StatusFilter))
+                    {
+                        <span>No projects with status "@Model.StatusFilter"</span>
+                    }
+                    else
+                    {
+                        <span>You don't have any projects assigned yet.</span>
+                    }
+                </p>
+            </div>
+        </div>
+    }
+</div>

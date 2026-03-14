@@ -1,0 +1,237 @@
+@model TaskManagerMVC.ViewModels.ProfileVM
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <!-- Profile Card -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <!-- Profile Image -->
+                    <div class="mb-3">
+                        @if (!string.IsNullOrEmpty(Model.ProfileImage))
+                        {
+                            <img src="@Model.ProfileImage" alt="@Model.FullName" class="rounded-circle border border-3 border-white shadow" 
+                                 style="width: 150px; height: 150px; object-fit: cover;" id="profileImagePreview">
+                        }
+                        else
+                        {
+                            <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center border border-3 border-white shadow" 
+                                 style="width: 150px; height: 150px; font-size: 48px; font-weight: 600;" id="profileImagePreview">
+                                @Model.Initials
+                            </div>
+                        }
+                    </div>
+                    
+                    <!-- Upload/Remove Buttons Below Image -->
+                    <div class="d-flex justify-content-center gap-2 mb-3">
+                        <button type="button" class="btn btn-primary rounded-circle shadow-sm p-0" 
+                                style="width: 40px; height: 40px;" 
+                                onclick="document.getElementById('profileImageInput').click()" 
+                                title="Upload Photo">
+                            <i class="bi bi-camera-fill"></i>
+                        </button>
+                        @if (!string.IsNullOrEmpty(Model.ProfileImage))
+                        {
+                            <button type="button" class="btn btn-danger rounded-circle shadow-sm p-0" 
+                                    style="width: 40px; height: 40px;" 
+                                    onclick="removeProfilePicture()" 
+                                    title="Remove Photo">
+                                <i class="bi bi-trash-fill"></i>
+                            </button>
+                        }
+                    </div>
+                    
+                    <!-- Hidden File Input -->
+                    <input type="file" id="profileImageInput" accept=".jpg,.jpeg,.png" style="display: none;" onchange="uploadProfilePicture(this)">
+                    
+                    <h4 class="mb-1">@Model.FullName</h4>
+                    <p class="text-muted mb-2">@Model.JobTitle</p>
+                    <span class="badge bg-primary">@Model.RoleName</span>
+                </div>
+            </div>
+
+            <!-- Stats Card -->
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0">Performance Stats</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="text-muted">Total Tasks</span>
+                        <strong>@Model.TotalTasks</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="text-muted">Completed</span>
+                        <strong class="text-success">@Model.CompletedTasks</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="text-muted">Pending</span>
+                        <strong class="text-warning">@Model.PendingTasks</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Hours Logged</span>
+                        <strong>@Model.TotalHoursLogged.ToString("F1")h</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <!-- Personal Information -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Personal Information</h5>
+                    <div class="d-flex gap-2">
+                        <a href="@Url.Action("EditProfile", "Manager")" class="btn btn-sm btn-primary">
+                            <i class="bi bi-pencil me-1"></i>Edit Profile
+                        </a>
+                        <a href="@Url.Action("Settings", "Manager")" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-gear me-1"></i>Settings
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="text-muted small">Email</label>
+                            <p class="mb-0">@Model.Email</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Phone</label>
+                            <p class="mb-0">@(Model.Phone ?? "Not provided")</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Employee ID</label>
+                            <p class="mb-0">@(Model.EmployeeId ?? "N/A")</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Hire Date</label>
+                            <p class="mb-0">@(Model.HireDate?.ToString("MMM dd, yyyy") ?? "N/A")</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Organization Information -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Organization Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="text-muted small">Department</label>
+                            <p class="mb-0">@(Model.DepartmentName ?? "Not assigned")</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Team</label>
+                            <p class="mb-0">@(Model.TeamName ?? "Not assigned")</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Manager</label>
+                            <p class="mb-0">@(Model.ManagerName ?? "N/A")</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Role</label>
+                            <p class="mb-0">@Model.RoleName</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+<script>
+    function uploadProfilePicture(input) {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            
+            // Validate file type - only PNG, JPG, JPEG
+            const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+            if (!allowedTypes.includes(file.type.toLowerCase())) {
+                alert('Please select a valid image file (PNG, JPG, or JPEG only)');
+                input.value = ''; // Clear the input
+                return;
+            }
+            
+            // Validate file size
+            if (file.size > maxSize) {
+                alert('File size must be less than 5MB');
+                input.value = ''; // Clear the input
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('profileImage', file);
+            
+            // Show loading spinner
+            const preview = document.getElementById('profileImagePreview');
+            const originalContent = preview.outerHTML;
+            preview.outerHTML = '<div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center border border-3 border-white shadow" style="width: 150px; height: 150px;"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Uploading...</span></div></div>';
+            
+            fetch('@Url.Action("UploadProfilePicture", "Manager")', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Reload page to show new image
+                    location.reload();
+                } else {
+                    alert(data.message || 'Failed to upload image');
+                    document.getElementById('profileImagePreview').outerHTML = originalContent;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while uploading the image');
+                document.getElementById('profileImagePreview').outerHTML = originalContent;
+            });
+        }
+    }
+    
+    function removeProfilePicture() {
+        if (!confirm('Are you sure you want to remove your profile picture?')) {
+            return;
+        }
+        
+        // Show loading
+        const preview = document.getElementById('profileImagePreview');
+        const originalContent = preview.outerHTML;
+        preview.outerHTML = '<div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center border border-3 border-white shadow" style="width: 150px; height: 150px;"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Removing...</span></div></div>';
+        
+        fetch('@Url.Action("RemoveProfilePicture", "Manager")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message || 'Failed to remove image');
+                document.getElementById('profileImagePreview').outerHTML = originalContent;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while removing the image');
+            document.getElementById('profileImagePreview').outerHTML = originalContent;
+        });
+    }
+</script>
+}

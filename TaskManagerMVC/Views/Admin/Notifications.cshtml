@@ -1,0 +1,87 @@
+@model List<TaskManagerMVC.ViewModels.NotificationVM>
+@{
+    ViewData["Title"] = "Notifications";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Notifications</h1>
+            <p class="text-muted mb-0">@Model.Count notification(s)</p>
+        </div>
+        <div class="d-flex gap-2">
+            @if (Model.Any(n => !n.IsRead))
+            {
+                <form asp-action="MarkAllNotificationsRead" method="post">
+                    <button type="submit" class="btn btn-outline-primary">
+                        <i class="bi bi-check-all me-2"></i>Mark All Read
+                    </button>
+                </form>
+            }
+        </div>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="card border-0 shadow-sm">
+            <div class="list-group list-group-flush">
+                @foreach (var notif in Model)
+                {
+                    <div class="list-group-item px-4 py-3 @(!notif.IsRead ? "bg-primary bg-opacity-10 border-start border-primary border-3" : "")">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="d-flex align-items-start flex-grow-1">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center me-3 @(!notif.IsRead ? "bg-primary text-white" : "bg-light text-muted")" style="width:36px;height:36px;min-width:36px;">
+                                    <i class="bi bi-@(notif.Type == "task_assigned" ? "clipboard-check" : notif.Type == "comment" ? "chat-dots" : notif.Type == "status_change" ? "arrow-repeat" : "bell") small"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1 @(!notif.IsRead ? "fw-bold" : "")">@notif.Title</h6>
+                                    <p class="text-muted small mb-2">@notif.Message</p>
+                                    @if (notif.ReferenceType == "task" && notif.ReferenceId.HasValue)
+                                    {
+                                        <a href="@Url.Action("TaskDetails", "Admin", new { id = notif.ReferenceId })" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye me-1"></i>View Details
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                            <div class="text-end ms-3">
+                                <small class="text-muted text-nowrap">@notif.TimeAgo</small>
+                                @if (!notif.IsRead)
+                                {
+                                    <div class="mt-1">
+                                        <button class="btn btn-sm btn-link text-primary p-0 mark-read-btn" data-id="@notif.Id">Mark read</button>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5 text-muted">
+                <i class="bi bi-bell-slash fs-1"></i>
+                <p class="mt-2">No notifications yet</p>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.mark-read-btn').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const id = this.dataset.id;
+                const res = await fetch(`@Url.Action("MarkNotificationRead")`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `id=${id}`
+                });
+                if (res.ok) location.reload();
+            });
+        });
+    </script>
+}

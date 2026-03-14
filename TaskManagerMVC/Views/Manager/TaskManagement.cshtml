@@ -1,0 +1,191 @@
+@model TaskManagerMVC.ViewModels.TaskListVM
+@{
+    ViewData["Title"] = "Task Management";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Task Management</h1>
+            <p class="text-muted mb-0">View and manage tasks for your projects</p>
+        </div>
+        <a href="@Url.Action("Index", "Manager")" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label small text-muted">Status</label>
+                    <select name="statusId" class="form-select">
+                        <option value="">All Statuses</option>
+                        @if(Model.Statuses != null)
+                        {
+                            @foreach(var status in Model.Statuses)
+                            {
+                                <option value="@status.Value" selected="@(status.Value == Model.StatusId?.ToString())">@status.Text</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small text-muted">Priority</label>
+                    <select name="priorityId" class="form-select">
+                        <option value="">All Priorities</option>
+                        @if(Model.Priorities != null)
+                        {
+                            @foreach(var priority in Model.Priorities)
+                            {
+                                <option value="@priority.Value" selected="@(priority.Value == Model.PriorityId?.ToString())">@priority.Text</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small text-muted">Project</label>
+                    <select name="projectId" class="form-select">
+                        <option value="">All Projects</option>
+                        @if(ViewBag.Projects != null)
+                        {
+                            var projects = ViewBag.Projects as IEnumerable<SelectListItem>;
+                            if (projects != null)
+                            {
+                                @foreach(var proj in projects)
+                                {
+                                    <option value="@proj.Value" selected="@(proj.Value == Model.ProjectId?.ToString())">@proj.Text</option>
+                                }
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-outline-primary me-2">
+                        <i class="bi bi-funnel me-1"></i>Filter
+                    </button>
+                    <a href="@Url.Action("TaskManagement", "Manager")" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle me-1"></i>Clear
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tasks Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Task</th>
+                            <th>Assignee</th>
+                            <th>Project</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Due Date</th>
+                            <th class="text-end pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if(Model.Tasks?.Any() == true)
+                        {
+                            @foreach(var task in Model.Tasks)
+                            {
+                                var priorityBadge = task.PriorityName?.ToLower() switch
+                                {
+                                    "critical" => "bg-danger",
+                                    "high" => "bg-warning text-dark",
+                                    "medium" => "bg-info",
+                                    _ => "bg-secondary"
+                                };
+                                
+                                var statusBadge = task.StatusName?.ToLower() switch
+                                {
+                                    "completed" => "bg-success",
+                                    "in progress" => "bg-primary",
+                                    "in review" => "bg-warning text-dark",
+                                    "on hold" => "bg-secondary",
+                                    _ => "bg-info"
+                                };
+
+                                var isOverdue = task.DueDate.HasValue && task.DueDate < DateTime.Today 
+                                    && task.StatusName?.ToLower() != "completed";
+
+                                <tr>
+                                    <td class="ps-4">
+                                        <div>
+                                            <span class="fw-medium">@task.Title</span>
+                                            @if(!string.IsNullOrEmpty(task.CategoryName))
+                                            {
+                                                <br><small class="text-muted">@task.CategoryName</small>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if(!string.IsNullOrEmpty(task.AssigneeName))
+                                        {
+                                            <span>@task.AssigneeName</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted fst-italic">Unassigned</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if(!string.IsNullOrEmpty(task.ProjectName))
+                                        {
+                                            <span class="badge bg-light text-dark">@task.ProjectName</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td><span class="badge @priorityBadge">@task.PriorityName</span></td>
+                                    <td><span class="badge @statusBadge">@task.StatusName</span></td>
+                                    <td>
+                                        @if(task.DueDate.HasValue)
+                                        {
+                                            <span class="@(isOverdue ? "text-danger fw-medium" : "")">
+                                                @task.DueDate.Value.ToString("MMM dd, yyyy")
+                                                @if(isOverdue)
+                                                {
+                                                    <i class="bi bi-exclamation-circle ms-1"></i>
+                                                }
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <a href="@Url.Action("TaskDetails", "Manager", new { id = task.Id })" 
+                                           class="btn btn-sm btn-outline-primary" title="View Details">
+                                            <i class="bi bi-eye me-1"></i>View
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center py-5">
+                                    <div class="text-muted">
+                                        <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+                                        <p class="mb-2">No tasks found</p>
+                                        <small>Tasks from your managed projects will appear here</small>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

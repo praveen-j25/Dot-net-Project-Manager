@@ -1,0 +1,218 @@
+@model TaskManagerMVC.ViewModels.TeamPerformanceVM
+@{
+    ViewData["Title"] = "Team Performance";
+}
+
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Team Performance</h1>
+            <p class="text-muted mb-0">Analytics and performance metrics for your team</p>
+        </div>
+        <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Date Range Filter -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end" id="dateFilterForm">
+                <div class="col-md-4">
+                    <label class="form-label">Start Date</label>
+                    <input type="date" name="startDate" id="startDate" class="form-control" 
+                           value="@Model.StartDate?.ToString("yyyy-MM-dd")" required />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">End Date</label>
+                    <input type="date" name="endDate" id="endDate" class="form-control" 
+                           value="@Model.EndDate?.ToString("yyyy-MM-dd")" required />
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-filter me-2"></i>Apply Filter
+                    </button>
+                </div>
+            </form>
+            <div id="dateError" class="text-danger mt-2" style="display: none;">
+                <i class="bi bi-exclamation-circle me-1"></i>
+                <span>End Date must be after Start Date</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overall Statistics -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-check-circle fs-1 text-success mb-2"></i>
+                    <h3 class="mb-0">@Model.TotalTasksCompleted</h3>
+                    <small class="text-muted">Tasks Completed</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-graph-up fs-1 text-primary mb-2"></i>
+                    <h3 class="mb-0">@Model.OverallCompletionRate.ToString("F1")%</h3>
+                    <small class="text-muted">Completion Rate</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-exclamation-triangle fs-1 text-warning mb-2"></i>
+                    <h3 class="mb-0">@Model.TotalTasksOverdue</h3>
+                    <small class="text-muted">Overdue Tasks</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-clock fs-1 text-info mb-2"></i>
+                    <h3 class="mb-0">@Model.AverageTaskDuration.ToString("F1")</h3>
+                    <small class="text-muted">Avg. Days/Task</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Member Performance -->
+    @if (Model.MemberPerformance.Any())
+    {
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0"><i class="bi bi-people me-2 text-primary"></i>Individual Performance</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Employee ID</th>
+                                <th class="text-center">Assigned</th>
+                                <th class="text-center">Completed</th>
+                                <th class="text-center">In Progress</th>
+                                <th class="text-center">Overdue</th>
+                                <th>Completion Rate</th>
+                                <th class="text-center">Avg. Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var member in Model.MemberPerformance.OrderByDescending(m => m.CompletionRate))
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-2">
+                                                <i class="bi bi-person text-primary"></i>
+                                            </div>
+                                            <strong>@member.UserName</strong>
+                                        </div>
+                                    </td>
+                                    <td>@member.EmployeeId</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-secondary">@member.TasksAssigned</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-success">@member.TasksCompleted</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">@member.TasksInProgress</span>
+                                    </td>
+                                    <td class="text-center">
+                                        @if (member.TasksOverdue > 0)
+                                        {
+                                            <span class="badge bg-danger">@member.TasksOverdue</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress flex-grow-1 me-2" style="height: 8px; min-width: 100px;">
+                                                <div class="progress-bar bg-@(member.CompletionRate >= 80 ? "success" : member.CompletionRate >= 50 ? "warning" : "danger")" 
+                                                     role="progressbar" 
+                                                     style="width: @member.CompletionRate%"
+                                                     aria-valuenow="@member.CompletionRate" 
+                                                     aria-valuemin="0" 
+                                                     aria-valuemax="100">
+                                                </div>
+                                            </div>
+                                            <small class="fw-bold">@member.CompletionRate.ToString("F1")%</small>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        @if (member.AverageCompletionTime > 0)
+                                        {
+                                            <span>@member.AverageCompletionTime.ToString("F1") days</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-graph-up fs-1 text-muted d-block mb-3"></i>
+                <h5 class="text-muted">No Performance Data</h5>
+                <p class="text-muted">No tasks found for the selected date range.</p>
+            </div>
+        </div>
+    }
+</div>
+
+
+@section Scripts {
+<script>
+    document.getElementById('dateFilterForm').addEventListener('submit', function(e) {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        const errorDiv = document.getElementById('dateError');
+        
+        if (startDate && endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            
+            if (start > end) {
+                e.preventDefault();
+                errorDiv.style.display = 'block';
+                document.getElementById('endDate').classList.add('is-invalid');
+                return false;
+            }
+        }
+        
+        errorDiv.style.display = 'none';
+        document.getElementById('endDate').classList.remove('is-invalid');
+    });
+    
+    // Clear error on date change
+    document.getElementById('startDate').addEventListener('change', function() {
+        document.getElementById('dateError').style.display = 'none';
+        document.getElementById('endDate').classList.remove('is-invalid');
+    });
+    
+    document.getElementById('endDate').addEventListener('change', function() {
+        document.getElementById('dateError').style.display = 'none';
+        this.classList.remove('is-invalid');
+    });
+</script>
+}

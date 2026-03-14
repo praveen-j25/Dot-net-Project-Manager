@@ -1,0 +1,175 @@
+@model TaskFormVM
+@{ ViewData["Title"] = "Edit Task"; }
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex align-items-center mb-4">
+                <a asp-action="Index" class="btn btn-outline-secondary me-3 rounded-circle" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+                <div>
+                    <h3 class="fw-bold mb-0" style="color:#0f172a;">Edit Task</h3>
+                    <small class="text-muted">Update task details</small>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm" style="border-radius:14px;">
+                <div class="card-body p-4">
+                    <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                        <div asp-validation-summary="All" class="alert alert-danger"></div>
+                        <input asp-for="Id" type="hidden">
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-card-heading me-1 text-primary"></i>Task Title <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="Title" class="form-control form-control-lg" placeholder="Task title">
+                            <span asp-validation-for="Title" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-text-paragraph me-1 text-primary"></i>Description
+                            </label>
+                            <textarea asp-for="Description" class="form-control" rows="4" placeholder="Add details..."></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-semibold"><i class="bi bi-folder me-1 text-primary"></i>Category</label>
+                                <select asp-for="CategoryId" asp-items="Model.Categories" class="form-select">
+                                    <option value="">-- Select --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-semibold"><i class="bi bi-flag me-1 text-primary"></i>Priority <span class="text-danger">*</span></label>
+                                <select asp-for="PriorityId" asp-items="Model.Priorities" class="form-select">
+                                    <option value="">-- Select --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-semibold"><i class="bi bi-clipboard-check me-1 text-primary"></i>Status <span class="text-danger">*</span></label>
+                                <select asp-for="StatusId" asp-items="Model.Statuses" class="form-select">
+                                    <option value="">-- Select --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-semibold"><i class="bi bi-calendar-event me-1 text-primary"></i>Due Date</label>
+                                <input asp-for="DueDate" type="date" class="form-control" min="@DateTime.Today.ToString("yyyy-MM-dd")">
+                            </div>
+                        </div>
+
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <div class="row">
+                                <div class="col-md-6 mb-4">
+                                    <label asp-for="HourlyRate" class="form-label fw-semibold">
+                                        <i class="bi bi-currency-rupee me-1 text-primary"></i>Hourly Rate (₹)
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">₹</span>
+                                        <input asp-for="HourlyRate" class="form-control" type="number" step="0.01" min="0" placeholder="e.g., 500.00">
+                                    </div>
+                                    <span asp-validation-for="HourlyRate" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- File Attachments -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-paperclip me-1 text-primary"></i>Add More Files
+                            </label>
+                            <div class="border rounded-3 p-3 text-center" style="border-style:dashed !important; border-color:#cbd5e1 !important; background:#f8fafc; cursor:pointer;"
+                                 onclick="document.getElementById('editFileInput').click()">
+                                <i class="bi bi-cloud-arrow-up fs-3 d-block mb-1" style="color:#7c3aed;"></i>
+                                <small class="text-muted">Click to add attachments (Max 10MB each)</small>
+                                <input type="file" id="editFileInput" name="Attachments" multiple class="d-none" 
+                                       accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.gif,.zip,.rar,.txt,.csv">
+                            </div>
+                            <div id="editFileList" class="mt-2"></div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary px-4 py-2">
+                                <i class="bi bi-check-lg me-1"></i>Update Task
+                            </button>
+                            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-primary px-4 py-2">
+                                <i class="bi bi-eye me-1"></i>View
+                            </a>
+                            <a asp-action="Index" class="btn btn-outline-secondary px-4 py-2">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+<script>
+    // Helper function to show styled notifications
+    function showNotification(message, type) {
+        const bgColor = type === 'error' ? '#dc3545' : type === 'warning' ? '#ffc107' : '#28a745';
+        const icon = type === 'error' ? 'bi-x-circle' : type === 'warning' ? 'bi-exclamation-triangle' : 'bi-check-circle';
+        
+        const notification = $(`
+            <div class="position-fixed top-0 end-0 p-3" style="z-index: 9999; margin-top: 70px;">
+                <div class="alert alert-dismissible fade show shadow-lg" style="background: ${bgColor}; color: white; border: none; border-radius: 8px; min-width: 350px; max-width: 500px;">
+                    <i class="bi ${icon} me-2"></i>
+                    <span>${message}</span>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+                </div>
+            </div>
+        `);
+        
+        $('body').append(notification);
+        setTimeout(() => notification.fadeOut(() => notification.remove()), 8000);
+    }
+    
+    document.getElementById('editFileInput').addEventListener('change', function(e) {
+        const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+        const list = document.getElementById('editFileList');
+        list.innerHTML = '';
+        
+        const validFiles = [];
+        const invalidFiles = [];
+        
+        Array.from(this.files).forEach(file => {
+            if (file.size > maxSize) {
+                invalidFiles.push(file);
+            } else {
+                validFiles.push(file);
+            }
+        });
+        
+        // Show error for invalid files
+        if (invalidFiles.length > 0) {
+            const fileNames = invalidFiles.map(f => `${f.name} (${(f.size / (1024 * 1024)).toFixed(2)} MB)`).join('<br>');
+            showNotification(`<strong>File size limit exceeded!</strong><br><br>The following files exceed the 10MB limit:<br>${fileNames}<br><br>Please select smaller files.`, 'error');
+            
+            // Reset the input to only include valid files
+            const dt = new DataTransfer();
+            validFiles.forEach(file => dt.items.add(file));
+            this.files = dt.files;
+        }
+        
+        // Display valid files
+        validFiles.forEach(file => {
+            const size = file.size < 1048576 ? (file.size/1024).toFixed(1) + ' KB' : (file.size/1048576).toFixed(1) + ' MB';
+            list.innerHTML += `<div class="d-flex align-items-center gap-2 p-2 border rounded mb-1" style="border-radius:8px !important;">
+                <i class="bi bi-file-earmark text-muted"></i>
+                <span class="flex-grow-1 small">${file.name}</span>
+                <span class="badge bg-light text-muted">${size}</span>
+            </div>`;
+        });
+    });
+</script>
+}

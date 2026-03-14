@@ -1,0 +1,82 @@
+@model List<TaskManagerMVC.ViewModels.EmployeeSummaryVM>
+@{
+    ViewData["Title"] = "Team Performance";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Team Performance</h1>
+            <p class="text-muted mb-0">Employee task completion and productivity overview</p>
+        </div>
+        <a href="@Url.Action("Index", "Admin")" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Dashboard
+        </a>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="row g-4">
+            @foreach (var emp in Model)
+            {
+                <div class="col-md-6 col-xl-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center me-3" style="width:48px;height:48px;font-weight:600;">
+                                    @emp.Initials
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">@emp.FullName</h6>
+                                    <small class="text-muted">@(emp.JobTitle ?? "Employee") &middot; @(emp.DepartmentName ?? "N/A")</small>
+                                </div>
+                            </div>
+
+                            <div class="row text-center g-2 mb-3">
+                                <div class="col-3">
+                                    <div class="fw-bold">@emp.TotalTasks</div>
+                                    <small class="text-muted">Total</small>
+                                </div>
+                                <div class="col-3">
+                                    <div class="fw-bold text-success">@emp.CompletedTasks</div>
+                                    <small class="text-muted">Done</small>
+                                </div>
+                                <div class="col-3">
+                                    <div class="fw-bold text-info">@emp.InProgressTasks</div>
+                                    <small class="text-muted">Active</small>
+                                </div>
+                                <div class="col-3">
+                                    <div class="fw-bold text-danger">@emp.OverdueTasks</div>
+                                    <small class="text-muted">Overdue</small>
+                                </div>
+                            </div>
+
+                            <div class="mb-2">
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span>Completion Rate</span>
+                                    <strong>@emp.CompletionRate%</strong>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar bg-@(emp.CompletionRate >= 75 ? "success" : emp.CompletionRate >= 50 ? "warning" : "danger")" style="width: @emp.CompletionRate%"></div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between small text-muted">
+                                <span><i class="bi bi-clock me-1"></i>@emp.HoursLogged.ToString("N1")h logged</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5 text-muted">
+                <i class="bi bi-people fs-1"></i>
+                <p class="mt-2">No employee data available</p>
+            </div>
+        </div>
+    }
+</div>

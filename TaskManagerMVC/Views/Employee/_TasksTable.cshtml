@@ -1,0 +1,119 @@
+@model List<TaskManagerMVC.ViewModels.TaskItemVM>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Task</th>
+                        <th>Category</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Due Date</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if(Model?.Any() == true)
+                    {
+                        @foreach(var task in Model)
+                        {
+                            var priorityBadge = task.PriorityName?.ToLower() switch
+                            {
+                                "critical" => "bg-danger",
+                                "high" => "bg-warning text-dark",
+                                "medium" => "bg-info",
+                                _ => "bg-secondary"
+                            };
+                            
+                            var statusBadge = task.StatusName?.ToLower() switch
+                            {
+                                "completed" => "bg-success",
+                                "in progress" => "bg-primary",
+                                "in review" => "bg-warning text-dark",
+                                "on hold" => "bg-secondary",
+                                _ => "bg-info"
+                            };
+
+                            var isOverdue = task.DueDate.HasValue && task.DueDate < DateTime.Today 
+                                && task.StatusName?.ToLower() != "completed";
+
+                            <tr>
+                                <td class="ps-4">
+                                    <div>
+                                        <a href="@Url.Action("TaskDetails", "Employee", new { id = task.Id })" 
+                                           class="text-decoration-none fw-medium @(task.StatusName?.ToLower() == "completed" ? "text-muted text-decoration-line-through" : "")">
+                                            @task.Title
+                                        </a>
+                                        @if(!string.IsNullOrEmpty(task.Description))
+                                        {
+                                            <br><small class="text-muted">@(task.Description.Length > 50 ? task.Description.Substring(0, 50) + "..." : task.Description)</small>
+                                        }
+                                    </div>
+                                </td>
+                                <td>
+                                    @if(!string.IsNullOrEmpty(task.CategoryName))
+                                    {
+                                        <span class="badge bg-light text-dark">@task.CategoryName</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td><span class="badge @priorityBadge">@task.PriorityName</span></td>
+                                <td><span class="badge @statusBadge">@task.StatusName</span></td>
+                                <td>
+                                    @if(task.DueDate.HasValue)
+                                    {
+                                        <span class="@(isOverdue ? "text-danger fw-medium" : "")">
+                                            @task.DueDate.Value.ToString("MMM dd, yyyy")
+                                            @if(isOverdue)
+                                            {
+                                                <i class="bi bi-exclamation-circle ms-1"></i>
+                                            }
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="btn-group">
+                                        <a href="@Url.Action("TaskDetails", "Employee", new { id = task.Id })" 
+                                           class="btn btn-sm btn-outline-primary" title="View Details">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        @if(task.StatusName?.ToLower() != "completed")
+                                        {
+                                            <button type="button" class="btn btn-sm btn-outline-success" 
+                                                    data-bs-toggle="modal" data-bs-target="#updateStatusModal" 
+                                                    data-task-id="@task.Id" title="Update Status">
+                                                <i class="bi bi-check-circle"></i>
+                                            </button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <div class="text-muted">
+                                    <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+                                    <p class="mb-0">No tasks in this category</p>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+

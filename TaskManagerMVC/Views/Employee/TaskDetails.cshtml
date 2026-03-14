@@ -1,0 +1,380 @@
+@model TaskManagerMVC.ViewModels.TaskDetailsEnhancedVM
+@{
+    ViewData["Title"] = "Task Details";
+    var priorityBadge = Model.PriorityName?.ToLower() switch
+    {
+        "critical" => "bg-danger",
+        "high" => "bg-warning text-dark",
+        "medium" => "bg-info",
+        _ => "bg-secondary"
+    };
+    var statusBadge = Model.StatusName?.ToLower() switch
+    {
+        "completed" => "bg-success",
+        "in progress" => "bg-primary",
+        "in review" => "bg-warning text-dark",
+        "on hold" => "bg-secondary",
+        _ => "bg-info"
+    };
+    var isOverdue = Model.DueDate.HasValue && Model.DueDate < DateTime.Today && Model.StatusName?.ToLower() != "completed";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Employee")">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="@Url.Action("MyTasks", "Employee")">My Tasks</a></li>
+                    <li class="breadcrumb-item active">Task Details</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-0">@Model.Title</h1>
+        </div>
+        <a href="@Url.Action("MyTasks", "Employee")" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Tasks
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Task Overview -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-file-text me-2 text-primary"></i>Task Overview</h5>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge @priorityBadge">@Model.PriorityName Priority</span>
+                        
+                        <form asp-action="UpdateTaskStatus" asp-controller="Employee" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="taskId" value="@Model.Id" />
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-sm dropdown-toggle @statusBadge" data-bs-toggle="dropdown" aria-expanded="false">
+                                    @Model.StatusName
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    @if (Model.Response?.Statuses != null)
+                                    {
+                                        foreach (var status in Model.Response.Statuses)
+                                        {
+                                            <li>
+                                                <button type="submit" name="statusId" value="@status.Value" class="dropdown-item @(Model.StatusName == status.Text ? "active" : "")">
+                                                    @status.Text
+                                                </button>
+                                            </li>
+                                        }
+                                    }
+                                    else
+                                    {
+                                         <li><span class="dropdown-item disabled">No statuses available</span></li>
+                                    }
+                                </ul>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if(!string.IsNullOrEmpty(Model.Description))
+                    {
+                        <div class="mb-4">
+                            <h6 class="text-muted mb-2">Description</h6>
+                            <p class="mb-0">@Model.Description</p>
+                        </div>
+                    }
+
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block">Task Type</small>
+                                <span class="fw-medium text-capitalize">@Model.TaskType</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block">Category</small>
+                                <span class="fw-medium">@(Model.CategoryName ?? "Uncategorized")</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block">Project</small>
+                                <span class="fw-medium">@(Model.ProjectName ?? "No Project")</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if(!string.IsNullOrEmpty(Model.Tags))
+                    {
+                        <div class="mt-4">
+                            <h6 class="text-muted mb-2">Tags</h6>
+                            @foreach(var tag in Model.Tags.Split(','))
+                            {
+                                <span class="badge bg-primary-subtle text-primary me-1">@tag.Trim()</span>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Progress Update -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0"><i class="bi bi-speedometer2 me-2 text-success"></i>Progress Update</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="UpdateTaskProgress" asp-controller="Employee" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="taskId" value="@Model.Id" />
+                        <div class="mb-4">
+                            <label class="form-label">Progress: <span id="progressValue">@Model.Progress</span>%</label>
+                            <input type="range" class="form-range" name="progress" min="0" max="100" step="5" 
+                                   value="@Model.Progress" id="progressSlider" oninput="document.getElementById('progressValue').textContent = this.value">
+                            <div class="d-flex justify-content-between small text-muted">
+                                <span>0%</span>
+                                <span>25%</span>
+                                <span>50%</span>
+                                <span>75%</span>
+                                <span>100%</span>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle me-2"></i>Update Progress
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Attachments -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0"><i class="bi bi-paperclip me-2 text-secondary"></i>Attachments</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.Attachments != null && Model.Attachments.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var file in Model.Attachments)
+                            {
+                                var icon = "bi-file-earmark";
+                                if (!string.IsNullOrEmpty(file.FileType))
+                                {
+                                    icon = file.FileType.ToLower() switch
+                                    {
+                                        "pdf" => "bi-file-earmark-pdf",
+                                        "doc" or "docx" => "bi-file-earmark-word",
+                                        "xls" or "xlsx" or "csv" => "bi-file-earmark-excel",
+                                        "ppt" or "pptx" => "bi-file-earmark-slides",
+                                        "jpg" or "jpeg" or "png" or "gif" => "bi-file-earmark-image",
+                                        "zip" or "rar" => "bi-file-earmark-zip",
+                                        "txt" => "bi-file-earmark-text",
+                                        _ => "bi-file-earmark"
+                                    };
+                                }
+
+                                <div class="list-group-item px-0 d-flex align-items-center gap-3 border-bottom-0 pb-3 h-auto">
+                                    <div class="rounded-3 d-flex align-items-center justify-content-center bg-light" style="width:40px;height:40px;min-width:40px;">
+                                        <i class="bi @icon fs-5 text-secondary"></i>
+                                    </div>
+                                    <div class="flex-grow-1 overflow-hidden">
+                                        <a href="/File/Attachment/@file.Id" target="_blank" class="text-decoration-none text-dark fw-medium text-truncate d-block">@file.OriginalName</a>
+                                        <small class="text-muted">
+                                            @file.FileSize &bull; @file.CreatedAt.ToString("MMM d") &bull; @file.UploaderName
+                                        </small>
+                                    </div>
+                                    <div>
+                                        <a href="/File/Attachment/@file.Id" download class="btn btn-sm btn-outline-secondary rounded-circle" data-bs-toggle="tooltip" title="Download">
+                                            <i class="bi bi-download"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted small mb-0">No attachments found.</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Comments & Updates Section (consolidated from separate Response and Comment sections) -->
+            <!-- Comments Section -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0"><i class="bi bi-chat-dots me-2 text-warning"></i>Comments</h5>
+                </div>
+                <div class="card-body">
+                    @if(Model.Comments?.Any() == true)
+                    {
+                        <div class="mb-4">
+                            @foreach(var comment in Model.Comments)
+                            {
+                                <div class="d-flex mb-3 pb-3 border-bottom">
+                                    <div class="avatar-sm bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3">
+                                        <span class="text-primary fw-medium small">@(comment.UserName?.Substring(0, 2).ToUpper() ?? "U")</span>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between">
+                                            <h6 class="mb-1">@comment.UserName</h6>
+                                            <small class="text-muted">@comment.CreatedAt.ToString("MMM dd, yyyy h:mm tt")</small>
+                                        </div>
+                                        <p class="mb-0 text-muted">@comment.Comment</p>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center py-3">No comments yet. Be the first to comment!</p>
+                    }
+
+                    <form asp-action="AddComment" asp-controller="Employee" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="taskId" value="@Model.Id" />
+                        <div class="input-group">
+                            <input type="text" name="comment" class="form-control" placeholder="Add a comment..." required>
+                            <button type="submit" class="btn btn-outline-primary">
+                                <i class="bi bi-send"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Timeline -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0"><i class="bi bi-calendar3 me-2 text-primary"></i>Timeline</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <small class="text-muted">Start Date</small>
+                        <p class="mb-0 fw-medium">@(Model.StartDate?.ToString("MMMM dd, yyyy") ?? "Not set")</p>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Due Date</small>
+                        <p class="mb-0 fw-medium @(isOverdue ? "text-danger" : "")">
+                            @(Model.DueDate?.ToString("MMMM dd, yyyy") ?? "Not set")
+                            @if(isOverdue)
+                            {
+                                <span class="badge bg-danger ms-2">Overdue</span>
+                            }
+                        </p>
+                    </div>
+                    @if(Model.CompletedDate.HasValue)
+                    {
+                        <div>
+                            <small class="text-muted">Completed Date</small>
+                            <p class="mb-0 fw-medium text-success">@Model.CompletedDate.Value.ToString("MMMM dd, yyyy")</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Effort Tracking -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0"><i class="bi bi-clock-history me-2 text-info"></i>Effort Tracking</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="text-center p-3 bg-light rounded">
+                                <h4 class="mb-0">@Model.EstimatedHours</h4>
+                                <small class="text-muted">Estimated Hours</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center p-3 bg-light rounded">
+                                <h4 class="mb-0">@Model.ActualHours</h4>
+                                <small class="text-muted">Actual Hours</small>
+                            </div>
+                        </div>
+                    </div>
+                    @if(Model.IsBillable)
+                    {
+                        <div class="mt-3">
+                            <span class="badge bg-success">
+                                <i class="bi bi-currency-rupee me-1"></i>Billable
+                            </span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Assignment Info -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0"><i class="bi bi-person me-2 text-success"></i>Assignment</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <small class="text-muted">Assigned By</small>
+                        <p class="mb-0 fw-medium">@(Model.AssignedByName ?? "System")</p>
+                    </div>
+                    @if(Model.AssignedAt.HasValue)
+                    {
+                        <div class="mb-3">
+                            <small class="text-muted">Assigned On</small>
+                            <p class="mb-0">@Model.AssignedAt.Value.ToString("MMMM dd, yyyy")</p>
+                        </div>
+                    }
+                    <div>
+                        <small class="text-muted">Created By</small>
+                        <p class="mb-0">@(Model.CreatorName ?? "Unknown")</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Log Time -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0"><i class="bi bi-stopwatch me-2 text-warning"></i>Log Time</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="LogTime" asp-controller="Employee" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="taskId" value="@Model.Id" />
+                        <div class="mb-3">
+                            <label class="form-label">Hours</label>
+                            <input type="number" name="hours" step="0.25" min="0.25" class="form-control" 
+                                   placeholder="0.0" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Date</label>
+                            <input type="date" name="logDate" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea name="description" class="form-control" rows="2" 
+                                      placeholder="What did you work on?"></textarea>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="isBillable" name="isBillable" value="true" @(Model.IsBillable ? "checked" : "")>
+                            <label class="form-check-label" for="isBillable">Billable</label>
+                        </div>
+                        <button type="submit" class="btn btn-warning w-100">
+                            <i class="bi bi-plus-circle me-2"></i>Log Time
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+<style>
+    .avatar-sm {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+    }
+    .bg-primary-subtle { background-color: rgba(13, 110, 253, 0.1); }
+</style>
+}

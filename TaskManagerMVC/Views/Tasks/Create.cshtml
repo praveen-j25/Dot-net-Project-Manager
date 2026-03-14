@@ -1,0 +1,193 @@
+@model TaskFormVM
+@{ ViewData["Title"] = "New Task"; }
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex align-items-center mb-4">
+                <a asp-action="Index" class="btn btn-outline-secondary me-3 rounded-circle" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+                <div>
+                    <h3 class="fw-bold mb-0" style="color:#0f172a;">Create New Task</h3>
+                    <small class="text-muted">Fill in the details below</small>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm" style="border-radius:14px;">
+                <div class="card-body p-4">
+                    <form asp-action="Create" method="post" enctype="multipart/form-data" id="taskForm">
+                        <div asp-validation-summary="All" class="alert alert-danger"></div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-card-heading me-1 text-primary"></i>Task Title <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="Title" class="form-control form-control-lg" placeholder="What needs to be done?">
+                            <span asp-validation-for="Title" class="text-danger small"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label asp-for="EstimatedHours" class="form-label fw-semibold">
+                                    <i class="bi bi-clock me-1 text-primary"></i>Estimated Hours
+                                </label>
+                                <div class="input-group">
+                                    <input asp-for="EstimatedHours" class="form-control" type="number" step="0.5" min="0" placeholder="e.g., 8.0">
+                                    <span class="input-group-text">hours</span>
+                                </div>
+                                <span asp-validation-for="EstimatedHours" class="text-danger small"></span>
+                            </div>
+            
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <div class="col-md-6 mb-4">
+                                    <label asp-for="HourlyRate" class="form-label fw-semibold">
+                                        <i class="bi bi-currency-rupee me-1 text-primary"></i>Hourly Rate (₹)
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">₹</span>
+                                        <input asp-for="HourlyRate" class="form-control" type="number" step="0.01" min="0" placeholder="e.g., 500.00">
+                                    </div>
+                                    <span asp-validation-for="HourlyRate" class="text-danger small"></span>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-text-paragraph me-1 text-primary"></i>Description
+                            </label>
+                            <textarea asp-for="Description" class="form-control" rows="4" placeholder="Add more details about this task..."></textarea>
+                            <small class="text-muted">Optional - Add any relevant details</small>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-folder me-1 text-primary"></i>Category
+                                </label>
+                                <select asp-for="CategoryId" asp-items="Model.Categories" class="form-select">
+                                    <option value="">-- Select Category --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-flag me-1 text-primary"></i>Priority <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="PriorityId" asp-items="Model.Priorities" class="form-select">
+                                    <option value="">-- Select Priority --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-clipboard-check me-1 text-primary"></i>Status <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="StatusId" asp-items="Model.Statuses" class="form-select">
+                                    <option value="">-- Select Status --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-calendar-event me-1 text-primary"></i>Due Date <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="DueDate" type="date" class="form-control" min="@DateTime.Today.ToString("yyyy-MM-dd")">
+                            </div>
+                        </div>
+
+                        <!-- File Attachments -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-paperclip me-1 text-primary"></i>File Attachments
+                            </label>
+                            <div class="border rounded-3 p-4 text-center" style="border-style:dashed !important; border-color:#cbd5e1 !important; background:#f8fafc; cursor:pointer;" 
+                                 onclick="document.getElementById('fileInput').click()">
+                                <i class="bi bi-cloud-arrow-up fs-2 d-block mb-2" style="color:#7c3aed;"></i>
+                                <p class="mb-1 fw-medium">Drop files here or click to upload</p>
+                                <small class="text-muted">PDF, Word, Excel, Images, ZIP (Max 10MB each)</small>
+                                <input type="file" id="fileInput" name="Attachments" multiple class="d-none" 
+                                       accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.gif,.zip,.rar,.txt,.csv">
+                            </div>
+                            <div id="fileList" class="mt-2"></div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex gap-3">
+                            <button type="submit" class="btn btn-primary px-4 py-2">
+                                <i class="bi bi-check-lg me-2"></i>Create Task
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary px-4 py-2">
+                                <i class="bi bi-x-lg me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    // Helper function to show styled notifications
+    function showNotification(message, type) {
+        const bgColor = type === 'error' ? '#dc3545' : type === 'warning' ? '#ffc107' : '#28a745';
+        const icon = type === 'error' ? 'bi-x-circle' : type === 'warning' ? 'bi-exclamation-triangle' : 'bi-check-circle';
+        
+        const notification = $(`
+            <div class="position-fixed top-0 end-0 p-3" style="z-index: 9999; margin-top: 70px;">
+                <div class="alert alert-dismissible fade show shadow-lg" style="background: ${bgColor}; color: white; border: none; border-radius: 8px; min-width: 350px; max-width: 500px;">
+                    <i class="bi ${icon} me-2"></i>
+                    <span>${message}</span>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+                </div>
+            </div>
+        `);
+        
+        $('body').append(notification);
+        setTimeout(() => notification.fadeOut(() => notification.remove()), 8000);
+    }
+    
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+        const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+        const list = document.getElementById('fileList');
+        list.innerHTML = '';
+        
+        const validFiles = [];
+        const invalidFiles = [];
+        
+        Array.from(this.files).forEach(file => {
+            if (file.size > maxSize) {
+                invalidFiles.push(file);
+            } else {
+                validFiles.push(file);
+            }
+        });
+        
+        // Show error for invalid files
+        if (invalidFiles.length > 0) {
+            const fileNames = invalidFiles.map(f => `${f.name} (${(f.size / (1024 * 1024)).toFixed(2)} MB)`).join('<br>');
+            showNotification(`<strong>File size limit exceeded!</strong><br><br>The following files exceed the 10MB limit:<br>${fileNames}<br><br>Please select smaller files.`, 'error');
+            
+            // Reset the input to only include valid files
+            const dt = new DataTransfer();
+            validFiles.forEach(file => dt.items.add(file));
+            this.files = dt.files;
+        }
+        
+        // Display valid files
+        validFiles.forEach((file, i) => {
+            const size = file.size < 1048576 ? (file.size/1024).toFixed(1) + ' KB' : (file.size/1048576).toFixed(1) + ' MB';
+            list.innerHTML += `<div class="d-flex align-items-center gap-2 p-2 border rounded mb-1" style="border-radius:8px !important;">
+                <i class="bi bi-file-earmark text-muted"></i>
+                <span class="flex-grow-1 small">${file.name}</span>
+                <span class="badge bg-light text-muted">${size}</span>
+            </div>`;
+        });
+    });
+</script>
+}

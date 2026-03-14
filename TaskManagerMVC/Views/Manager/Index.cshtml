@@ -1,0 +1,240 @@
+@model TaskManagerMVC.ViewModels.ManagerDashboardVM
+@{
+    ViewData["Title"] = "Manager Dashboard";
+}
+
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Manager Dashboard</h1>
+            <p class="text-muted mb-0">Overview of your team and projects</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="@Url.Action("AssignTask")" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-2"></i>Assign Task
+            </a>
+            <a href="@Url.Action("TeamPerformance")" class="btn btn-outline-secondary">
+                <i class="bi bi-graph-up me-2"></i>View Reports
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-4">
+        <!-- Team Overview -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1 small">Team Members</p>
+                            <h3 class="mb-0">@Model.TotalTeamMembers</h3>
+                            <small class="text-success">
+                                <i class="bi bi-check-circle me-1"></i>@Model.ActiveToday Active Today
+                            </small>
+                        </div>
+                        <div class="bg-primary bg-opacity-10 rounded p-3">
+                            <i class="bi bi-people fs-4 text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Projects -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1 small">Active Projects</p>
+                            <h3 class="mb-0">@Model.ActiveProjects</h3>
+                            <small class="text-success">
+                                <i class="bi bi-arrow-up me-1"></i>@Model.ProjectsOnTrack On Track
+                            </small>
+                        </div>
+                        <div class="bg-success bg-opacity-10 rounded p-3">
+                            <i class="bi bi-folder fs-4 text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tasks -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1 small">Total Tasks</p>
+                            <h3 class="mb-0">@Model.TotalTasks</h3>
+                            <small class="text-info">
+                                <i class="bi bi-clock me-1"></i>@Model.InProgressTasks In Progress
+                            </small>
+                        </div>
+                        <div class="bg-info bg-opacity-10 rounded p-3">
+                            <i class="bi bi-list-task fs-4 text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Completion Rate -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1 small">Completion Rate</p>
+                            <h3 class="mb-0">@Model.TeamCompletionRate.ToString("F1")%</h3>
+                            <small class="text-warning">
+                                <i class="bi bi-exclamation-triangle me-1"></i>@Model.OverdueTasks Overdue
+                            </small>
+                        </div>
+                        <div class="bg-warning bg-opacity-10 rounded p-3">
+                            <i class="bi bi-graph-up-arrow fs-4 text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Recent Activities -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0"><i class="bi bi-activity me-2 text-primary"></i>Recent Activities</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.RecentActivities.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var activity in Model.RecentActivities)
+                            {
+                                <div class="list-group-item px-0 border-0">
+                                    <div class="d-flex align-items-start">
+                                        <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
+                                            <i class="bi bi-@(activity.Action == "completed" ? "check-circle" : activity.Action == "assigned" ? "person-plus" : "pencil") text-primary"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <p class="mb-1">
+                                                <strong>@activity.UserName</strong> @activity.Action Task
+                                                <strong>@activity.EntityName</strong>
+                                            </p>
+                                            <small class="text-muted">@activity.TimeAgo</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                            <p>No recent activities</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Performers -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0"><i class="bi bi-trophy me-2 text-warning"></i>Top Performers</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.TopPerformers.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var performer in Model.TopPerformers)
+                            {
+                                <div class="list-group-item px-0 border-0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">@performer.UserName</h6>
+                                            <small class="text-muted">@performer.EmployeeId</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="badge bg-success mb-1">@performer.CompletedTasks Tasks</div>
+                                            <div class="small text-muted">@performer.CompletionRate.ToString("F1")% Rate</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-trophy fs-1 d-block mb-2"></i>
+                            <p>No performance data yet</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Deadlines -->
+    @if (Model.UpcomingDeadlines.Any())
+    {
+        <div class="row g-4 mt-2">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0"><i class="bi bi-calendar-event me-2 text-danger"></i>Upcoming Deadlines</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Task</th>
+                                        <th>Project</th>
+                                        <th>Assignee</th>
+                                        <th>Due Date</th>
+                                        <th>Priority</th>
+                                        <th>Days Left</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var deadline in Model.UpcomingDeadlines)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <a href="@Url.Action("TaskDetails", "Manager", new { id = deadline.TaskId })">
+                                                    @deadline.TaskTitle
+                                                </a>
+                                            </td>
+                                            <td>@deadline.ProjectName</td>
+                                            <td>@deadline.AssigneeName</td>
+                                            <td>@deadline.DueDate.ToString("MMM dd, yyyy")</td>
+                                            <td>
+                                                <span class="badge bg-@(deadline.Priority.ToLower() == "high" ? "danger" : deadline.Priority.ToLower() == "medium" ? "warning" : "info")">
+                                                    @deadline.Priority
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-@(deadline.DaysUntilDue <= 2 ? "danger" : deadline.DaysUntilDue <= 5 ? "warning" : "success")">
+                                                    @deadline.DaysUntilDue days
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

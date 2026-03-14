@@ -1,0 +1,351 @@
+@model TaskManagerMVC.ViewModels.TaskAssignmentVM
+@{
+    ViewData["Title"] = "Edit Task";
+}
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-1">Edit Task</h1>
+                    <p class="text-muted mb-0">Update task details and assignment</p>
+                </div>
+                <a href="@Url.Action("TaskManagement", "Manager")" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Tasks
+                </a>
+            </div>
+
+            <form id="taskForm" asp-action="EditTask" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data">
+                <input type="hidden" asp-for="Id" />
+                
+                <!-- Basic Info -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0"><i class="bi bi-info-circle me-2 text-primary"></i>Basic Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label asp-for="Title" class="form-label">Task Title <span class="text-danger">*</span></label>
+                            <input asp-for="Title" class="form-control" placeholder="Enter task title" />
+                            <span asp-validation-for="Title" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">Description</label>
+                            <textarea asp-for="Description" class="form-control" rows="4" 
+                                      placeholder="Describe the task in detail..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger small"></span>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="TaskType" class="form-label">Task Type</label>
+                                <select asp-for="TaskType" asp-items="Model.TaskTypes" class="form-select"></select>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Tags" class="form-label">Tags</label>
+                                <input asp-for="Tags" class="form-control" placeholder="e.g., urgent, frontend, api" />
+                                <small class="text-muted">Separate tags with commas</small>
+                            </div>
+                        </div>
+
+                        <!-- File Attachments -->
+                        <div class="mt-4">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-paperclip me-1 text-primary"></i>Attachments
+                            </label>
+                            <div class="border rounded-3 p-3 text-center" style="border-style:dashed !important; border-color:#cbd5e1 !important; background:#f8fafc; cursor:pointer;"
+                                 onclick="document.getElementById('fileInput').click()">
+                                <i class="bi bi-cloud-arrow-up fs-3 d-block mb-1" style="color:#7c3aed;"></i>
+                                <small class="text-muted">Click to add attachments (Max 10MB each)</small>
+                                <input type="file" id="fileInput" asp-for="Attachments" multiple class="d-none" 
+                                       accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.gif,.zip,.rar,.txt,.csv">
+                            </div>
+                            <div id="fileList" class="mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project & Category -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0"><i class="bi bi-folder me-2 text-success"></i>Project & Category</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="ProjectId" class="form-label">Project</label>
+                                <select asp-for="ProjectId" asp-items="Model.Projects" class="form-select">
+                                    <option value="">-- Select Project --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="CategoryId" class="form-label">Category</label>
+                                <select asp-for="CategoryId" asp-items="Model.Categories" class="form-select">
+                                    <option value="">-- Select Category --</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Assignment -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0"><i class="bi bi-person-check me-2 text-info"></i>Assignment</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="AssignedTo" class="form-label">Assign To</label>
+                                <select asp-for="AssignedTo" asp-items="Model.Employees" class="form-select">
+                                    <option value="">-- Select Employee --</option>
+                                </select>
+                                <small class="text-muted">Leave empty to create unassigned task</small>
+                            </div>
+                            <div class="col-md-3">
+                                <label asp-for="PriorityId" class="form-label">Priority <span class="text-danger">*</span></label>
+                                <select asp-for="PriorityId" asp-items="Model.Priorities" class="form-select"></select>
+                            </div>
+                            <div class="col-md-3">
+                                <label asp-for="StatusId" class="form-label">Status <span class="text-danger">*</span></label>
+                                <select asp-for="StatusId" asp-items="Model.Statuses" class="form-select"></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Schedule & Effort -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0"><i class="bi bi-calendar-event me-2 text-warning"></i>Schedule & Effort</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label asp-for="StartDate" class="form-label">Start Date</label>
+                                <input asp-for="StartDate" type="date" class="form-control" readonly style="background-color: #e9ecef; opacity: 0.7; pointer-events: none;" />
+                                <span asp-validation-for="StartDate" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="DueDate" class="form-label">Due Date <span class="text-danger">*</span></label>
+                                <input asp-for="DueDate" type="date" class="form-control" required />
+                                <span asp-validation-for="DueDate" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="EstimatedHours" class="form-label">Estimated Hours</label>
+                                <input asp-for="EstimatedHours" type="number" step="0.5" min="0" max="1000" 
+                                       class="form-control" placeholder="0" />
+                                <span asp-validation-for="EstimatedHours" class="text-danger small"></span>
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-4">
+                                <div class="form-check form-switch mt-4">
+                                    <input asp-for="IsBillable" class="form-check-input" type="checkbox" />
+                                    <label asp-for="IsBillable" class="form-check-label">Billable Task</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="HourlyRate" class="form-label">Hourly Rate (₹)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₹</span>
+                                    <input asp-for="HourlyRate" class="form-control" type="number" step="0.01" min="0" placeholder="0.00" />
+                                </div>
+                                <span asp-validation-for="HourlyRate" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit -->
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="@Url.Action("TaskManagement", "Manager")" class="btn btn-outline-secondary px-4">Cancel</a>
+                    <button type="submit" id="submitBtn" class="btn btn-primary px-4">
+                        <span class="btn-text">
+                            <i class="bi bi-check-circle me-2"></i>Update Task
+                        </span>
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function() {
+            // Real-time validation when start date changes
+            $('#StartDate').on('change', function() {
+                var startDate = $(this).val();
+                var dueDate = $('#DueDate').val();
+                
+                if (startDate && dueDate) {
+                    if (new Date(dueDate) < new Date(startDate)) {
+                        showValidationMessage('Due date must be on or after start date', 'error');
+                    }
+                }
+            });
+            
+            // Real-time validation when due date changes
+            $('#DueDate').on('change', function() {
+                var startDate = $('#StartDate').val();
+                var dueDate = $(this).val();
+                
+                if (startDate && dueDate) {
+                    if (new Date(dueDate) < new Date(startDate)) {
+                        showValidationMessage('Due date must be on or after start date', 'error');
+                        $(this).val('');
+                        $(this).focus();
+                    }
+                }
+            });
+
+            // File input handling
+            document.getElementById('fileInput').addEventListener('change', function(e) {
+                const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+                const list = document.getElementById('fileList');
+                list.innerHTML = '';
+                
+                const validFiles = [];
+                const invalidFiles = [];
+                
+                Array.from(this.files).forEach(file => {
+                    if (file.size > maxSize) {
+                        invalidFiles.push(file);
+                    } else {
+                        validFiles.push(file);
+                    }
+                });
+                
+                // Show error for invalid files
+                if (invalidFiles.length > 0) {
+                    const fileNames = invalidFiles.map(f => `${f.name} (${(f.size / (1024 * 1024)).toFixed(2)} MB)`).join('<br>');
+                    showValidationMessage(`<strong>File size limit exceeded!</strong><br><br>The following files exceed the 10MB limit:<br>${fileNames}<br><br>Please select smaller files.`, 'error');
+                    
+                    // Reset the input to only include valid files
+                    const dt = new DataTransfer();
+                    validFiles.forEach(file => dt.items.add(file));
+                    this.files = dt.files;
+                }
+                
+                // Display valid files
+                validFiles.forEach(file => {
+                    const size = file.size < 1048576 ? (file.size/1024).toFixed(1) + ' KB' : (file.size/1048576).toFixed(1) + ' MB';
+                    list.innerHTML += `<div class="d-flex align-items-center gap-2 p-2 border rounded mb-1" style="border-radius:8px !important;">
+                        <i class="bi bi-file-earmark text-muted"></i>
+                        <span class="flex-grow-1 small">${file.name}</span>
+                        <span class="badge bg-light text-muted">${size}</span>
+                    </div>`;
+                });
+            });
+            
+            // Form submission with AJAX
+            $('#taskForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                var startDate = $('#StartDate').val();
+                var dueDate = $('#DueDate').val();
+                
+                // Check if due date is provided
+                if (!dueDate) {
+                    showValidationMessage('Please select a due date', 'error');
+                    $('#DueDate').focus();
+                    return false;
+                }
+                
+                // Check if due date is after start date
+                if (startDate && dueDate) {
+                    if (new Date(dueDate) < new Date(startDate)) {
+                        showValidationMessage('Due date must be on or after start date', 'error');
+                        $('#DueDate').focus();
+                        return false;
+                    }
+                }
+                
+                // Validate form
+                if (!$(this).valid()) {
+                    return false;
+                }
+                
+                var $form = $(this);
+                var $submitBtn = $('#submitBtn');
+                var $btnText = $submitBtn.find('.btn-text');
+                var $spinner = $submitBtn.find('.spinner-border');
+                
+                // Disable button and show spinner
+                $submitBtn.prop('disabled', true);
+                $btnText.addClass('d-none');
+                $spinner.removeClass('d-none');
+                
+                // Use FormData for file uploads
+                var formData = new FormData(this);
+                
+                $.ajax({
+                    url: $form.attr('action'),
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            showToast(response.message || 'Task updated successfully!', 'success');
+                            
+                            // Redirect after short delay
+                            setTimeout(function() {
+                                window.location.href = '@Url.Action("TaskManagement", "Manager")';
+                            }, 1000);
+                        } else {
+                            showToast(response.message || 'An error occurred.', 'error');
+                            
+                            // Re-enable button
+                            $submitBtn.prop('disabled', false);
+                            $btnText.removeClass('d-none');
+                            $spinner.addClass('d-none');
+                        }
+                    },
+                    error: function(xhr) {
+                        var errorMessage = 'An error occurred while updating the task.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
+                        showToast(errorMessage, 'error');
+                        
+                        // Re-enable button
+                        $submitBtn.prop('disabled', false);
+                        $btnText.removeClass('d-none');
+                        $spinner.addClass('d-none');
+                    }
+                });
+                
+                return false;
+            });
+            
+            // Helper function to show validation messages
+            function showValidationMessage(message, type) {
+                $('.validation-toast').remove();
+                
+                var bgClass = type === 'error' ? 'bg-danger' : 'bg-warning';
+                var icon = type === 'error' ? 'bi-exclamation-circle' : 'bi-info-circle';
+                
+                var toast = $('<div class="validation-toast position-fixed top-0 end-0 m-3 p-3 ' + bgClass + ' text-white rounded shadow" style="z-index: 9999;">' +
+                    '<i class="bi ' + icon + ' me-2"></i>' + message +
+                    '</div>');
+                
+                $('body').append(toast);
+                
+                setTimeout(function() {
+                    toast.fadeOut(function() {
+                        $(this).remove();
+                    });
+                }, 4000);
+            }
+        });
+    </script>
+}

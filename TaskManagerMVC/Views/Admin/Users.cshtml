@@ -1,0 +1,435 @@
+@model TaskManagerMVC.ViewModels.UserListVM
+@{
+    ViewData["Title"] = "User Management";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">User Management</h1>
+            <p class="text-muted mb-0">Manage employees and their access</p>
+        </div>
+        @if(User.IsInRole("Admin"))
+        {
+            <a href="@Url.Action("CreateUser", "Admin")" class="btn btn-primary">
+                <i class="bi bi-person-plus me-2"></i>Add Employee
+            </a>
+        }
+    </div>
+
+    <!-- Filters -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-2">
+                    <label class="form-label small text-muted">Search</label>
+                    <input type="text" name="search" class="form-control" value="@Model.Search" 
+                           placeholder="Search by name or email...">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small text-muted">Role</label>
+                    <select name="roleId" class="form-select" asp-items="Model.Roles">
+                        <option value="">All Roles</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small text-muted">Department</label>
+                    <select name="departmentId" class="form-select" asp-items="Model.Departments">
+                        <option value="">All Departments</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small text-muted">View</label>
+                    <select name="groupByTeam" class="form-select">
+                        <option value="false" selected="@(!Model.GroupByTeam)">List View</option>
+                        <option value="true" selected="@Model.GroupByTeam">Group by Team</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small text-muted">Status</label>
+                    <select name="isActive" class="form-select">
+                        <option value="" selected="@(!Model.IsActive.HasValue)">All Users</option>
+                        <option value="true" selected="@(Model.IsActive == true)">Active</option>
+                        <option value="false" selected="@(Model.IsActive == false)">Inactive</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-outline-primary me-2">
+                        <i class="bi bi-funnel me-1"></i>Filter
+                    </button>
+                    <a href="@Url.Action("Users", "Admin")" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle me-1"></i>Clear
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if(Model.GroupByTeam)
+    {
+        <!-- Grouped by Team View -->
+        @if(Model.TeamGroups?.Any() == true)
+        {
+            @foreach(var team in Model.TeamGroups)
+            {
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-header bg-primary bg-opacity-10 border-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-1">
+                                    <i class="bi bi-people-fill text-primary me-2"></i>@team.TeamName
+                                </h5>
+                                <div class="small text-muted">
+                                    @if(!string.IsNullOrEmpty(team.DepartmentName))
+                                    {
+                                        <span><i class="bi bi-building me-1"></i>@team.DepartmentName</span>
+                                    }
+                                    @if(!string.IsNullOrEmpty(team.ManagerName))
+                                    {
+                                        <span class="ms-3"><i class="bi bi-person-badge me-1"></i>Manager: <strong>@team.ManagerName</strong></span>
+                                    }
+                                </div>
+                            </div>
+                            <span class="badge bg-primary">@team.MemberCount Members</span>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-4">Employee</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th class="text-center">Tasks</th>
+                                        <th class="text-center">Status</th>
+                                        <th class="text-end pe-4">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach(var user in team.Members)
+                                    {
+                                        var roleBadge = user.RoleName?.ToLower() switch
+                                        {
+                                            "administrator" or "admin" => "bg-danger",
+                                            "manager" => "bg-warning text-dark",
+                                            _ => "bg-primary"
+                                        };
+
+                                        <tr>
+                                            <td class="ps-4">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="avatar-md bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3">
+                                                        @if(!string.IsNullOrEmpty(user.ProfileImage))
+                                                        {
+                                                            <img src="@user.ProfileImage" alt="@user.FullName" class="rounded-circle" width="40" height="40">
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-primary fw-medium">@user.Initials</span>
+                                                        }
+                                                    </div>
+                                                    <div>
+                                                        <p class="mb-0 fw-medium">@user.FullName</p>
+                                                        <small class="text-muted">@user.JobTitle</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>@user.Email</td>
+                                            <td><span class="badge @roleBadge">@user.RoleName</span></td>
+                                            <td class="text-center">
+                                                <span class="badge bg-secondary-subtle text-secondary">@user.TaskCount</span>
+                                            </td>
+                                            <td class="text-center">
+                                                @if(user.IsActive)
+                                                {
+                                                    <span class="badge bg-success-subtle text-success">Active</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-danger-subtle text-danger">Inactive</span>
+                                                }
+                                            </td>
+                                            <td class="text-end pe-4">
+                                                <div class="btn-group">
+                                                    @if(User.IsInRole("Admin"))
+                                                    {
+                                                        <a href="@Url.Action("EditUser", "Admin", new { id = user.Id })" 
+                                                           class="btn btn-sm btn-outline-primary" title="Edit">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </a>
+                                                    }
+                                                    <a href="@Url.Action("AssignTasks", "Admin", new { assignedTo = user.Id })" 
+                                                       class="btn btn-sm btn-outline-info" title="View Tasks">
+                                                        <i class="bi bi-list-task"></i>
+                                                    </a>
+                                                    @if(User.IsInRole("Admin") && user.Id != 1 && user.Email != "admin@taskmanager.com")
+                                                    {
+                                                        <button type="button" 
+                                                                class="btn btn-sm btn-outline-danger" 
+                                                                title="Delete"
+                                                                data-user-id="@user.Id"
+                                                                data-user-name="@user.FullName"
+                                                                data-employee-id="@(user.EmployeeId ?? "N/A")"
+                                                                onclick="showDeleteModal(this)">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    }
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <div class="text-muted">
+                        <i class="bi bi-people fs-1 d-block mb-3"></i>
+                        <p class="mb-2">No teams found</p>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <!-- List View (Original) -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Employee</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Department</th>
+                                <th class="text-center">Tasks</th>
+                                <th class="text-center">Status</th>
+                                <th class="text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if(Model.Users?.Any() == true)
+                            {
+                                @foreach(var user in Model.Users)
+                                {
+                                    var roleBadge = user.RoleName?.ToLower() switch
+                                    {
+                                        "administrator" or "admin" => "bg-danger",
+                                        "manager" => "bg-warning text-dark",
+                                        _ => "bg-primary"
+                                    };
+
+                                    <tr>
+                                        <td class="ps-4">
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-md bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3">
+                                                    @if(!string.IsNullOrEmpty(user.ProfileImage))
+                                                    {
+                                                        <img src="@user.ProfileImage" alt="@user.FullName" class="rounded-circle" width="40" height="40">
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-primary fw-medium">@user.Initials</span>
+                                                    }
+                                                </div>
+                                                <div>
+                                                    <p class="mb-0 fw-medium">@user.FullName</p>
+                                                    <small class="text-muted">@user.JobTitle</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>@user.Email</td>
+                                        <td><span class="badge @roleBadge">@user.RoleName</span></td>
+                                        <td>@(user.DepartmentName ?? "-")</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-secondary-subtle text-secondary">@user.TaskCount</span>
+                                        </td>
+                                        <td class="text-center">
+                                            @if(user.IsActive)
+                                            {
+                                                <span class="badge bg-success-subtle text-success">Active</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger-subtle text-danger">Inactive</span>
+                                            }
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            <div class="btn-group">
+                                                @if(User.IsInRole("Admin"))
+                                                {
+                                                    <a href="@Url.Action("EditUser", "Admin", new { id = user.Id })" 
+                                                       class="btn btn-sm btn-outline-primary" title="Edit">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </a>
+                                                }
+                                                <a href="@Url.Action("AssignTasks", "Admin", new { assignedTo = user.Id })" 
+                                                   class="btn btn-sm btn-outline-info" title="View Tasks">
+                                                    <i class="bi bi-list-task"></i>
+                                                </a>
+                                                @if(User.IsInRole("Admin") && user.Id != 1 && user.Email != "admin@taskmanager.com")
+                                                {
+                                                    <button type="button" 
+                                                            class="btn btn-sm btn-outline-danger" 
+                                                            title="Delete"
+                                                            data-user-id="@user.Id"
+                                                            data-user-name="@user.FullName"
+                                                            data-employee-id="@(user.EmployeeId ?? "N/A")"
+                                                            onclick="showDeleteModal(this)">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="7" class="text-center py-5">
+                                        <div class="text-muted">
+                                            <i class="bi bi-people fs-1 d-block mb-3"></i>
+                                            <p class="mb-2">No users found</p>
+                                            <a href="@Url.Action("CreateUser", "Admin")" class="btn btn-sm btn-primary">
+                                                Add First Employee
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Modals {
+<!-- New Delete Confirmation Modal -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1" aria-hidden="true" style="z-index: 1055;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Delete Employee
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning d-flex align-items-center mb-3">
+                    <i class="bi bi-exclamation-circle-fill flex-shrink-0 me-2"></i>
+                    <div>
+                        <strong>Warning:</strong> This action <strong>cannot</strong> be undone.
+                    </div>
+                </div>
+                
+                <p class="mb-2">You are about to delete the following employee:</p>
+                
+                <div class="card bg-light border-0 mb-3">
+                    <div class="card-body py-2">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted">Name:</span>
+                            <strong id="deleteUserName" class="text-dark"></strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Employee ID:</span>
+                            <strong id="deleteUserEmployeeId" class="text-dark"></strong>
+                        </div>
+                    </div>
+                </div>
+                
+                <p class="small text-muted mb-0">
+                    All tasks assigned to this employee will be unassigned.
+                </p>
+
+                <form id="deleteUserForm" method="post" asp-action="DeleteUser" class="mt-4">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="deleteUserId" name="id" />
+                    
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash me-2"></i>Delete Permanently
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+}
+
+@section Scripts {
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const modalEl = document.getElementById('deleteUserModal');
+        // Ensure modal element exists before initializing
+        if (modalEl) {
+            const modal = new bootstrap.Modal(modalEl);
+
+            window.showDeleteModal = function(btn) {
+                const userId = btn.getAttribute('data-user-id');
+                const userName = btn.getAttribute('data-user-name');
+                const empId = btn.getAttribute('data-employee-id') || 'N/A';
+
+                document.getElementById('deleteUserId').value = userId;
+                document.getElementById('deleteUserName').textContent = userName;
+                document.getElementById('deleteUserEmployeeId').textContent = empId;
+                
+                modal.show();
+            };
+        } else {
+            console.error('Delete modal element not found!');
+        }
+    });
+</script>
+}
+
+@section Styles {
+<style>
+    .avatar-md {
+        width: 40px;
+        height: 40px;
+        font-size: 0.875rem;
+    }
+    .bg-success-subtle { background-color: rgba(25, 135, 84, 0.1); }
+    .bg-danger-subtle { background-color: rgba(220, 53, 69, 0.1); }
+    .bg-secondary-subtle { background-color: rgba(108, 117, 125, 0.1); }
+    
+    /* Fix delete modal layout - compact design */
+    #deleteUserModal .modal-dialog {
+        max-width: 400px;
+        margin: 1.75rem auto;
+    }
+    
+    #deleteUserModal .modal-content {
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    #deleteUserModal .modal-body {
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+    
+    #deleteUserModal .modal-footer {
+        background-color: #f8f9fa;
+    }
+    
+    #deleteUserModal .modal-footer .btn {
+        font-size: 0.875rem;
+        padding: 0.375rem 0.75rem;
+    }
+</style>
+}

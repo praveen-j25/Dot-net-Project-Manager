@@ -1,0 +1,31 @@
+# Build results
+[Bb]in/
+[Oo]bj/
+*.exe
+*.dll
+*.pdb
+
+# User-specific files
+*.user
+*.userosscache
+*.sln.docstates
+
+# Visual Studio
+.vs/
+.vscode/
+
+# Logs
+*.log
+*.txt
+!README.md
+!README.txt
+
+# Temporary files
+*.tmp
+*.bak
+*_backup
+desktop.ini
+Thumbs.db
+
+# OS generated files
+.DS_Store

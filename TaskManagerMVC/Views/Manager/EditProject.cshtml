@@ -1,0 +1,163 @@
+@model TaskManagerMVC.ViewModels.ProjectFormVM
+@{
+    ViewData["Title"] = "Edit Project";
+}
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-1">Edit Project</h1>
+                    <p class="text-muted mb-0">Update project details</p>
+                </div>
+                <a href="@Url.Action("Projects", "Admin")" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Projects
+                </a>
+            </div>
+
+            <form id="projectForm" asp-action="EditProject" method="post">
+                <input type="hidden" asp-for="Id" />
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0"><i class="bi bi-folder me-2 text-primary"></i>Project Details</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label asp-for="Name" class="form-label">Project Name <span class="text-danger">*</span></label>
+                                <input asp-for="Name" class="form-control" />
+                                <span asp-validation-for="Name" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="Code" class="form-label">Project Code</label>
+                                <input asp-for="Code" class="form-control" />
+                            </div>
+                            <div class="col-12">
+                                <label asp-for="Description" class="form-label">Description</label>
+                                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="DepartmentId" class="form-label">Department</label>
+                                <select asp-for="DepartmentId" asp-items="Model.Departments" class="form-select">
+                                    <option value="">-- Select --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="ManagerId" class="form-label">Project Manager</label>
+                                <select asp-for="ManagerId" asp-items="Model.Managers" class="form-select">
+                                    <option value="">-- Select --</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0"><i class="bi bi-calendar me-2 text-primary"></i>Timeline & Budget</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="StartDate" class="form-label">Start Date</label>
+                                <input asp-for="StartDate" class="form-control" type="date" readonly style="background-color: #e9ecef; opacity: 0.7; pointer-events: none;" />
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="EndDate" class="form-label">End Date</label>
+                                <input asp-for="EndDate" class="form-control" type="date" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="Budget" class="form-label">Budget</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₹</span>
+                                    <input asp-for="Budget" class="form-control" type="number" step="0.01" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="Status" class="form-label">Status</label>
+                                <select asp-for="Status" asp-items="Model.Statuses" class="form-select"></select>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="Priority" class="form-label">Priority</label>
+                                <select asp-for="Priority" asp-items="Model.Priorities" class="form-select"></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-3">
+                    <a href="@Url.Action("MyProjects", "Manager")" class="btn btn-outline-secondary px-4">Cancel</a>
+                    <button type="submit" id="submitBtn" class="btn btn-primary px-4">
+                        <span class="btn-text">
+                            <i class="bi bi-check-lg me-2"></i>Update Project
+                        </span>
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+        $(document).ready(function() {
+            // Handle form submission with AJAX
+            $('#projectForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                // Validate form
+                if (!$(this).valid()) {
+                    return false;
+                }
+                
+                var $form = $(this);
+                var $submitBtn = $('#submitBtn');
+                var $btnText = $submitBtn.find('.btn-text');
+                var $spinner = $submitBtn.find('.spinner-border');
+                
+                // Disable button and show spinner
+                $submitBtn.prop('disabled', true);
+                $btnText.addClass('d-none');
+                $spinner.removeClass('d-none');
+                
+                $.ajax({
+                    url: $form.attr('action'),
+                    type: 'POST',
+                    data: $form.serialize(),
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    success: function(response) {
+                        // Show success toast
+                        showToast('Project updated successfully!', 'success');
+                        
+                        // Re-enable button
+                        $submitBtn.prop('disabled', false);
+                        $btnText.removeClass('d-none');
+                        $spinner.addClass('d-none');
+                    },
+                    error: function(xhr) {
+                        // Show error toast
+                        var errorMessage = 'An error occurred while updating the project.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
+                        showToast(errorMessage, 'error');
+                        
+                        // Re-enable button
+                        $submitBtn.prop('disabled', false);
+                        $btnText.removeClass('d-none');
+                        $spinner.addClass('d-none');
+                    }
+                });
+                
+                return false;
+            });
+        });
+    </script>
+}

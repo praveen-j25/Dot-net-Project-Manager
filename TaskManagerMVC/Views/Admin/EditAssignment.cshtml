@@ -1,0 +1,206 @@
+@model TaskManagerMVC.ViewModels.TaskAssignmentVM
+@{
+    ViewData["Title"] = "Edit Task Assignment";
+}
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-1">Edit Task Assignment</h1>
+                    <p class="text-muted mb-0">Update task details and assignment</p>
+                </div>
+                <a href="@Url.Action("AssignTasks", "Admin")" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Tasks
+                </a>
+            </div>
+
+            <form asp-action="EditAssignment" method="post" enctype="multipart/form-data">
+                <input type="hidden" asp-for="Id" />
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0"><i class="bi bi-pencil-square me-2 text-primary"></i>Task Details</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label asp-for="Title" class="form-label">Title <span class="text-danger">*</span></label>
+                                <input asp-for="Title" class="form-control" />
+                                <span asp-validation-for="Title" class="text-danger small"></span>
+                            </div>
+                            <div class="col-12">
+                                <label asp-for="Description" class="form-label">Description</label>
+                                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="ProjectId" class="form-label">Project</label>
+                                <select asp-for="ProjectId" asp-items="Model.Projects" class="form-select">
+                                    <option value="">-- Select --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="CategoryId" class="form-label">Category</label>
+                                <select asp-for="CategoryId" asp-items="Model.Categories" class="form-select">
+                                    <option value="">-- Select --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="TaskType" class="form-label">Task Type</label>
+                                <select asp-for="TaskType" asp-items="Model.TaskTypes" class="form-select"></select>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="PriorityId" class="form-label">Priority <span class="text-danger">*</span></label>
+                                <select asp-for="PriorityId" asp-items="Model.Priorities" class="form-select"></select>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="StatusId" class="form-label">Status</label>
+                                <select asp-for="StatusId" asp-items="Model.Statuses" class="form-select"></select>
+                            </div>
+                        </div>
+
+                        <!-- File Attachments -->
+                        <div class="mt-4">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-paperclip me-1 text-primary"></i>Attachments
+                            </label>
+                            <div class="border rounded-3 p-3 text-center" style="border-style:dashed !important; border-color:#cbd5e1 !important; background:#f8fafc; cursor:pointer;"
+                                 onclick="document.getElementById('fileInput').click()">
+                                <i class="bi bi-cloud-arrow-up fs-3 d-block mb-1" style="color:#7c3aed;"></i>
+                                <small class="text-muted">Click to add attachments (Max 10MB each)</small>
+                                <input type="file" id="fileInput" asp-for="Attachments" multiple class="d-none" 
+                                       accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.gif,.zip,.rar,.txt,.csv">
+                            </div>
+                            <div id="fileList" class="mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0"><i class="bi bi-person-check me-2 text-primary"></i>Assignment & Timeline</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="AssignedTo" class="form-label">Assign To <span class="text-danger">*</span></label>
+                                <select asp-for="AssignedTo" asp-items="Model.Employees" class="form-select">
+                                    <option value="">-- Select Employee --</option>
+                                </select>
+                                <span asp-validation-for="AssignedTo" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="EstimatedHours" class="form-label">Estimated Hours</label>
+                                <input asp-for="EstimatedHours" class="form-control" type="number" step="0.5" />
+                                <span asp-validation-for="EstimatedHours" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="StartDate" class="form-label">Start Date</label>
+                                <input asp-for="StartDate" class="form-control" type="date" readonly style="background-color: #e9ecef; opacity: 0.7; pointer-events: none;" />
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="DueDate" class="form-label">Due Date <span class="text-danger">*</span></label>
+                                <input asp-for="DueDate" class="form-control" type="date" />
+                                <span asp-validation-for="DueDate" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Tags" class="form-label">Tags</label>
+                                <input asp-for="Tags" class="form-control" placeholder="e.g. urgent, frontend" />
+                            </div>
+                            <div class="col-md-6 d-flex align-items-end">
+                                <div class="form-check form-switch">
+                                    <input asp-for="IsBillable" class="form-check-input" type="checkbox" />
+                                    <label asp-for="IsBillable" class="form-check-label">Billable Task</label>
+                                </div>
+                            </div>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                 <div class="col-md-6">
+                                    <label asp-for="HourlyRate" class="form-label">Hourly Rate (₹)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">₹</span>
+                                        <input asp-for="HourlyRate" class="form-control" type="number" step="0.01" min="0" placeholder="0.00" />
+                                    </div>
+                                    <span asp-validation-for="HourlyRate" class="text-danger small"></span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-3">
+                    <a href="@Url.Action("AssignTasks", "Admin")" class="btn btn-outline-secondary px-4">Cancel</a>
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-check-lg me-2"></i>Update Task
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function() {
+            // Helper function to show styled notifications
+            function showNotification(message, type) {
+                const bgColor = type === 'error' ? '#dc3545' : type === 'warning' ? '#ffc107' : '#28a745';
+                const icon = type === 'error' ? 'bi-x-circle' : type === 'warning' ? 'bi-exclamation-triangle' : 'bi-check-circle';
+                
+                const notification = $(`
+                    <div class="position-fixed top-0 end-0 p-3" style="z-index: 9999; margin-top: 70px;">
+                        <div class="alert alert-dismissible fade show shadow-lg" style="background: ${bgColor}; color: white; border: none; border-radius: 8px; min-width: 350px;">
+                            <i class="bi ${icon} me-2"></i>
+                            <span>${message}</span>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+                        </div>
+                    </div>
+                `);
+                
+                $('body').append(notification);
+                setTimeout(() => notification.fadeOut(() => notification.remove()), 8000);
+            }
+            
+            // File input handling
+            document.getElementById('fileInput').addEventListener('change', function(e) {
+                const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+                const list = document.getElementById('fileList');
+                list.innerHTML = '';
+                
+                const validFiles = [];
+                const invalidFiles = [];
+                
+                Array.from(this.files).forEach(file => {
+                    if (file.size > maxSize) {
+                        invalidFiles.push(file);
+                    } else {
+                        validFiles.push(file);
+                    }
+                });
+                
+                // Show error for invalid files
+                if (invalidFiles.length > 0) {
+                    const fileNames = invalidFiles.map(f => `${f.name} (${(f.size / (1024 * 1024)).toFixed(2)} MB)`).join('<br>');
+                    showNotification(`<strong>File size limit exceeded!</strong><br><br>The following files exceed the 10MB limit:<br>${fileNames}<br><br>Please select smaller files.`, 'error');
+                    
+                    // Reset the input to only include valid files
+                    const dt = new DataTransfer();
+                    validFiles.forEach(file => dt.items.add(file));
+                    this.files = dt.files;
+                }
+                
+                // Display valid files
+                validFiles.forEach(file => {
+                    const size = file.size < 1048576 ? (file.size/1024).toFixed(1) + ' KB' : (file.size/1048576).toFixed(1) + ' MB';
+                    list.innerHTML += `<div class="d-flex align-items-center gap-2 p-2 border rounded mb-1" style="border-radius:8px !important;">
+                        <i class="bi bi-file-earmark text-muted"></i>
+                        <span class="flex-grow-1 small">${file.name}</span>
+                        <span class="badge bg-light text-muted">${size}</span>
+                    </div>`;
+                });
+            });
+        });
+    </script>
+}
